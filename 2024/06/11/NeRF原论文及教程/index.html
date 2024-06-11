@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="zh"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><meta><title>NeRF原论文及教程 - NeroZac</title><link rel="manifest" href="/manifest.json"><meta name="application-name" content="Zac&#039;s Blog"><meta name="msapplication-TileImage" content="/img/avatar.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Zac&#039;s Blog"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="description" content="摘要: NeRF原论文以及相关解读材料。"><meta property="og:type" content="blog"><meta property="og:title" content="Zac&#039;s Blog"><meta property="og:url" content="https://nerozac.com/2024/06/11/NeRF%E5%8E%9F%E8%AE%BA%E6%96%87%E5%8F%8A%E6%95%99%E7%A8%8B/"><meta property="og:site_name" content="Jiawei Li (Zac)"><meta property="og:description" content="摘要: NeRF原论文以及相关解读材料。"><meta property="og:locale" content="zh_CN"><meta property="og:image" content="https://github.com/adrianJW421/MyPicBed/raw/main/papers/nerf/17176735780405.jpg"><meta property="og:image" content="https://github.com/adrianJW421/MyPicBed/raw/main/papers/nerf/17176738942039.jpg"><meta property="og:image" content="https://github.com/adrianJW421/MyPicBed/raw/main/papers/nerf/17176740272593.jpg"><meta property="og:image" content="https://github.com/adrianJW421/MyPicBed/raw/main/papers/nerf/17176740783544.jpg"><meta property="og:image" content="https://github.com/adrianJW421/MyPicBed/raw/main/papers/nerf/17176744742403.jpg"><meta property="og:image" content="https://github.com/adrianJW421/MyPicBed/raw/main/papers/nerf/17176746259095.jpg"><meta property="og:image" content="https://github.com/adrianJW421/MyPicBed/raw/main/papers/nerf/17176746642306.jpg"><meta property="og:image" content="https://github.com/adrianJW421/MyPicBed/raw/main/papers/nerf/17176746789424.jpg"><meta property="og:image" content="https://github.com/adrianJW421/MyPicBed/raw/main/papers/nerf/17176747233709.jpg"><meta property="article:published_time" content="2024-06-11T08:08:49.678Z"><meta property="article:modified_time" content="2024-06-11T08:08:49.678Z"><meta property="article:author" content="Jiawei Li (Zac)"><meta property="article:tag" content="论文阅读"><meta property="article:tag" content="三维重建"><meta property="twitter:card" content="summary"><meta property="twitter:image:src" content="https://github.com/adrianJW421/MyPicBed/raw/main/papers/nerf/17176735780405.jpg"><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"https://nerozac.com/2024/06/11/NeRF%E5%8E%9F%E8%AE%BA%E6%96%87%E5%8F%8A%E6%95%99%E7%A8%8B/"},"headline":"Zac's Blog","image":["https://github.com/adrianJW421/MyPicBed/raw/main/papers/nerf/17176735780405.jpg","https://github.com/adrianJW421/MyPicBed/raw/main/papers/nerf/17176738942039.jpg","https://github.com/adrianJW421/MyPicBed/raw/main/papers/nerf/17176740272593.jpg","https://github.com/adrianJW421/MyPicBed/raw/main/papers/nerf/17176740783544.jpg","https://github.com/adrianJW421/MyPicBed/raw/main/papers/nerf/17176744742403.jpg","https://github.com/adrianJW421/MyPicBed/raw/main/papers/nerf/17176746259095.jpg","https://github.com/adrianJW421/MyPicBed/raw/main/papers/nerf/17176746642306.jpg","https://github.com/adrianJW421/MyPicBed/raw/main/papers/nerf/17176746789424.jpg","https://github.com/adrianJW421/MyPicBed/raw/main/papers/nerf/17176747233709.jpg"],"datePublished":"2024-06-11T08:08:49.678Z","dateModified":"2024-06-11T08:08:49.678Z","author":{"@type":"Person","name":"Jiawei Li"},"publisher":{"@type":"Organization","name":"NeroZac","logo":{"@type":"ImageObject","url":{"text":"Zac's Blog"}}},"description":"摘要: NeRF原论文以及相关解读材料。"}</script><link rel="canonical" href="https://nerozac.com/2024/06/11/NeRF%E5%8E%9F%E8%AE%BA%E6%96%87%E5%8F%8A%E6%95%99%E7%A8%8B/"><link rel="icon" href="/img/avatar.png"><link rel="stylesheet" href="https://use.fontawesome.com/releases/v6.0.0/css/all.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.7.0/styles/atom-one-light.css"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;600&amp;family=Source+Code+Pro"><link rel="stylesheet" href="/css/default.css"><style>body>.footer,body>.navbar,body>.section{opacity:0}</style><!--!--><!--!--><!--!--><!--!--><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cookieconsent@3.1.1/build/cookieconsent.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@1.10.0/dist/css/lightgallery.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/justifiedGallery@3.8.1/dist/css/justifiedGallery.min.css"><!--!--><!--!--><!--!--><style>.pace{-webkit-pointer-events:none;pointer-events:none;-webkit-user-select:none;-moz-user-select:none;user-select:none}.pace-inactive{display:none}.pace .pace-progress{background:#3273dc;position:fixed;z-index:2000;top:0;right:100%;width:100%;height:2px}</style><script src="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/pace.min.js"></script><!--!--><!--!--><!-- hexo injector head_end start --><script>
+  (function () {
+      function switchTab() {
+          if (!location.hash) {
+            return;
+          }
+
+          const id = '#' + CSS.escape(location.hash.substring(1));
+          const $tabMenu = document.querySelector(`.tabs a[href="${id}"]`);
+          if (!$tabMenu) {
+            return;
+          }
+
+          const $tabMenuContainer = $tabMenu.parentElement.parentElement;
+          Array.from($tabMenuContainer.children).forEach($menu => $menu.classList.remove('is-active'));
+          Array.from($tabMenuContainer.querySelectorAll('a'))
+              .map($menu => document.getElementById($menu.getAttribute("href").substring(1)))
+              .forEach($content => $content.classList.add('is-hidden'));
+
+          if ($tabMenu) {
+              $tabMenu.parentElement.classList.add('is-active');
+          }
+          const $activeTab = document.querySelector(id);
+          if ($activeTab) {
+              $activeTab.classList.remove('is-hidden');
+          }
+      }
+      switchTab();
+      window.addEventListener('hashchange', switchTab, false);
+  })();
+  </script><!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.2.0"></head><body class="is-2-column"><nav class="navbar navbar-main"><div class="container navbar-container"><div class="navbar-brand justify-content-center"><a class="navbar-item navbar-logo" href="/">Zac&#039;s Blog</a></div><div class="navbar-menu"><div class="navbar-start"><a class="navbar-item" href="/">Home</a><a class="navbar-item" href="/archives">Archives</a><a class="navbar-item" href="/categories">Categories</a><a class="navbar-item" href="/tags">Tags</a><a class="navbar-item" href="/about">About</a></div><div class="navbar-end"><a class="navbar-item" target="_blank" rel="noopener" title="Download on GitHub" href="https://github.com/adrianJW421"><i class="fab fa-github"></i></a><a class="navbar-item is-hidden-tablet catalogue" title="目录" href="javascript:;"><i class="fas fa-list-ul"></i></a><a class="navbar-item search" title="搜索" href="javascript:;"><i class="fas fa-search"></i></a></div></div></div></nav><section class="section"><div class="container"><div class="columns"><div class="column order-2 column-main is-8-tablet is-8-desktop is-8-widescreen"><div class="card"><article class="card-content article" role="article"><div class="article-meta is-size-7 is-uppercase level is-mobile"><div class="level-left"><span class="level-item"><time dateTime="2024-06-11T08:08:49.678Z" title="6/11/2024, 4:08:49 PM">2024-06-11</time>发表</span><span class="level-item"><time dateTime="2024-06-11T08:08:49.678Z" title="6/11/2024, 4:08:49 PM">2024-06-11</time>更新</span><span class="level-item"><a class="link-muted" href="/categories/%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/">论文阅读</a><span> / </span><a class="link-muted" href="/categories/%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/%E4%B8%89%E7%BB%B4%E9%87%8D%E5%BB%BA/">三维重建</a></span><span class="level-item">1 小时读完 (大约7616个字)</span></div></div><h1 class="title is-3 is-size-4-mobile">NeRF原论文及教程</h1><div class="content"><p>摘要: NeRF原论文以及相关解读材料。</p>
+<span id="more"></span>
+
+<style>
+    .blue-box {
+        border: 2px solid blue; /* 设置边框为蓝色 */
+        padding: 5px; /* 设置内边距 */
+        background-color: lightblue; /* 设置背景颜色为浅蓝色 */
+        color: black; /* 设置文本颜色为黑色 */
+        width: 600px; /* 设置方框的宽度 */
+        margin: 5px; /* 设置外边距 */
+    }
+</style>
+
+
+<br>
+
+<p><span id="jumpHere"> 〓 Table of Contents 〓 </span></p>
+<br>
+
+<ul>
+<li><a href="#%E5%8E%9F%E6%96%87%E8%B5%84%E6%BA%90">原文资源</a></li>
+<li><a href="#abstract">Abstract</a></li>
+<li><a href="#introduction">Introduction</a></li>
+<li><a href="#related-work">Related Work</a><ul>
+<li><a href="#%E7%A5%9E%E7%BB%8F3d%E5%BD%A2%E7%8A%B6%E8%A1%A8%E7%A4%BA">神经 3D 形状表示</a></li>
+<li><a href="#%E8%A7%86%E5%9B%BE%E5%90%88%E6%88%90%E5%92%8C%E5%9F%BA%E4%BA%8E%E5%9B%BE%E5%83%8F%E7%9A%84%E6%B8%B2%E6%9F%93">视图合成和基于图像的渲染</a></li>
+</ul>
+</li>
+<li><a href="#neural-radiance-field-scene-representation">Neural Radiance Field Scene Representation</a></li>
+<li><a href="#volume-rendering-with-radiance-fields">Volume Rendering with Radiance Fields</a></li>
+<li><a href="#optimizing-a-neural-radiance-field">Optimizing a Neural Radiance Field</a><ul>
+<li><a href="#positional-encoding">Positional encoding</a></li>
+<li><a href="#hierarchical-volume-sampling">Hierarchical volume sampling</a></li>
+<li><a href="#implementation-details">Implementation details</a></li>
+<li><a href="#5-3%E5%AE%9E%E7%8E%B0%E7%BB%86%E8%8A%82">5.3 实现细节</a></li>
+</ul>
+</li>
+<li><a href="#results">Results</a><ul>
+<li><a href="#%E6%95%B0%E6%8D%AE%E9%9B%86">数据集</a></li>
+<li><a href="#%E6%AF%94%E8%BE%83">比较</a></li>
+<li><a href="#%E8%AE%A8%E8%AE%BA">讨论</a></li>
+<li><a href="#%E6%B6%88%E8%9E%8D%E7%A0%94%E7%A9%B6">消融研究</a></li>
+</ul>
+</li>
+<li><a href="#conclusion">Conclusion</a></li>
+<li><a href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99">参考资料</a></li>
+</ul>
+<p><br><br></p>
+<h2 id="原文资源"><a href="#原文资源" class="headerlink" title="原文资源"></a>原文资源</h2><p><a href="#jumpHere">〓 ReTURN 〓</a></p>
+<p><a target="_blank" rel="noopener" href="https://arxiv.org/pdf/2003.08934">arxiv地址</a></p>
+<p><img src="https://github.com/adrianJW421/MyPicBed/raw/main/papers/nerf/17176735780405.jpg"><br><br><br></p>
+<h2 id="Abstract"><a href="#Abstract" class="headerlink" title="Abstract"></a>Abstract</h2><p>我们提出了一种方法，通过优化底层连续体积场函数，利用稀疏输入视图集合，在复杂场景的新视图合成方面实现了最先进的结果。我们的算法使用一个全连接（非卷积）的深度网络表示场景，其输入是一个单一的连续5D坐标（空间位置 (x, y, z) 和视角方向 (θ, φ)），输出是该空间位置的体积密度和视角依赖的辐射亮度。</p>
+<p>我们通过在相机射线上查询5D坐标并使用经典的体积渲染技术，将输出的颜色和密度投影到图像中来合成视图。由于体积渲染本质上是可微的，因此优化我们表示<span style="background-color: brown;color:white">&nbsp;所需的唯一输入是一组已知相机姿态的图像。&nbsp;</span></p>
+<p>我们描述了如何有效地优化神经辐射场，以渲染具有复杂几何和外观的场景的照片真实感新视图，并展示了在神经渲染和视图合成方面优于以往工作的结果。视图合成结果最好以视频形式观看，因此我们强烈建议读者观看我们的补充视频以获得有说服力的比较结果。</p>
+<p><br><br><br></p>
+<h2 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h2><p><a href="#jumpHere">〓 ReTURN 〓</a></p>
+<p>在这项工作中，我们通过直接优化连续5D场景表示的参数，以最小化渲染一组捕获图像的误差，从而解决了长期存在的视图合成问题。</p>
+<p>我们将静态场景表示为一个连续的5D函数，该函数输出空间中每个点 (x, y, z) 在每个方向 (θ, φ) 上发射的辐射亮度，以及每个点的密度，密度类似于差分不透明度，控制通过 (x, y, z) 的光线累积了多少辐射。我们的方法优化了一个没有卷积层的全连接深度神经网络（通常称为多层感知器或 MLP），通过从单个5D坐标 (x, y, z, θ, φ) 回归到单个体积密度和视角依赖的 RGB 颜色来表示该函数。</p>
+<p>为了从特定视点渲染这个神经辐射场（NeRF），我们：</p>
+<ol>
+<li>通过场景行进相机光线，生成一组采样的3D点；</li>
+<li>使用这些点及其对应的2D视角方向作为神经网络的输入，产生一组颜色和密度输出；</li>
+<li>使用经典的体积渲染技术将这些颜色和密度累积成2D图像。由于这个过程本质上是可微的，我们可以使用梯度下降来优化该模型，通过最小化每个观察图像与从我们的表示渲染的对应视图之间的误差。</li>
+</ol>
+<p>在多个视图上最小化这个误差鼓励网络通过为包含真实底层场景内容的位置分配高体积密度和准确的颜色来预测场景的连贯模型。</p>
+<p>我们发现，优化神经辐射场表示复杂场景的基本实现无法收敛到足够高分辨率的表示，并且每条相机光线所需的样本数量效率低下。我们通过位置编码转换输入5D坐标，使 MLP 能够表示更高频率的函数，并提出了一种层次采样程序，以减少充分采样这种高频场景表示所需的查询数量来解决这些问题。</p>
+<p>我们的方法继承了体积表示的优点：两者都可以表示复杂的现实世界几何和外观，并且非常适合使用投影图像进行基于梯度的优化。关键是，我们的方法克服了在高分辨率建模复杂场景时离散体素网格的高存储成本。</p>
+<p>总之，我们的技术贡献包括：</p>
+<ul>
+<li>一种用5D神经辐射场表示具有复杂几何和材料的连续场景的方法，该场景参数化为基本的 MLP 网络；</li>
+<li>一种基于经典体积渲染技术的可微渲染过程，我们使用它来从标准 RGB 图像优化这些表示。这包括一种层次采样策略，将 MLP 的容量分配给具有可见场景内容的空间；</li>
+<li>一种位置编码，将每个输入5D坐标映射到更高维度空间，使我们能够成功优化神经辐射场以表示高频场景内容。</li>
+</ul>
+<p>我们证明了我们的方法在定量和定性上均优于最先进的视图合成方法，包括拟合神经3D表示的工作和训练深度卷积网络以预测采样体积表示的工作。据我们所知，这篇论文首次提出了能够从自然环境中捕获的 RGB 图像渲染高分辨率照片真实感新视图的连续神经场景表示。</p>
+<br>
+
+<p><img src="https://github.com/adrianJW421/MyPicBed/raw/main/papers/nerf/17176738942039.jpg"></p>
+<p><br><br><br></p>
+<h2 id="Related-Work"><a href="#Related-Work" class="headerlink" title="Related Work"></a>Related Work</h2><p><a href="#jumpHere">〓 ReTURN 〓</a></p>
+<p>计算机视觉领域的一个有前途的新方向是将物体和场景编码到一个 MLP 的权重中，直接从 3D 空间位置映射到形状的隐式表示，例如该位置的签名距离。然而，这些方法迄今为止还无法以与使用离散表示（如三角网格或体素网格）相同的保真度再现具有复杂几何形状的真实场景。</p>
+<p>在本节中，我们回顾了这两类工作，并将它们与我们的方法进行对比。我们的方法增强了神经场景表示的能力，以产生复杂真实场景渲染的最先进结果。</p>
+<p>使用 MLP 从低维坐标映射到颜色的类似方法也被用于表示其他图形函数，如图像、纹理材料和间接照明值。</p>
+<h3 id="神经-3D-形状表示"><a href="#神经-3D-形状表示" class="headerlink" title="神经 3D 形状表示"></a>神经 3D 形状表示</h3><p>近期工作通过优化将 xyz 坐标映射到签名距离函数或占用字段的深度网络，研究了连续 3D 形状的隐式表示。然而，这些模型受到需要访问地面真相 3D 几何的限制，通常从合成 3D 形状数据集（如 ShapeNet）获取。</p>
+<p>后续工作通过制定可微渲染函数放宽了对地面真相 3D 形状的要求，从而允许仅使用 2D 图像优化神经隐式形状表示。Niemeyer 等人将表面表示为 3D 占用字段，并使用数值方法找到每条光线的表面交点，然后使用隐式微分计算精确导数。Sitzmann 等人使用一种较不直接的神经 3D 表示，仅在每个连续的 3D 坐标上输出特征向量和 RGB 颜色，并提出了一种可微渲染函数，该函数由一个沿每条光线行进的循环神经网络组成，以确定表面位置。</p>
+<p>虽然这些技术可以潜在地表示复杂和高分辨率的几何，但它们迄今为止仅限于具有低几何复杂度的简单形状，导致渲染结果过于平滑。我们展示了另一种策略，即优化网络以编码 5D 辐射场（具有 2D 视角依赖外观的 3D 体积），可以表示高分辨率的几何和外观，以渲染复杂场景的照片真实感新视图。</p>
+<h3 id="视图合成和基于图像的渲染"><a href="#视图合成和基于图像的渲染" class="headerlink" title="视图合成和基于图像的渲染"></a>视图合成和基于图像的渲染</h3><p>在视图密集采样的情况下，可以通过简单的光场采样插值技术重建照片真实感的新视图。对于视图稀疏采样的小说视图合成，计算机视觉和图形学社区通过从观察图像中预测传统几何和外观表示，取得了显著进展。一类流行的方法使用基于网格的场景表示，具有漫反射或视角依赖的外观。可微光栅化器或路径追踪器可以直接优化网格表示，以使用梯度下降重现一组输入图像。然而，基于图像重投影的梯度优化网格通常很困难，可能是因为局部极小值或损失景观的差调。此外，这种策略需要在优化之前提供具有固定拓扑的模板网格初始化，这对于不受限制的真实世界场景通常是不可用的。</p>
+<p>另一类方法使用体积表示来从一组输入 RGB 图像中生成高质量的照片真实感视图合成。体积方法能够逼真地表示复杂形状和材料，非常适合基于梯度的优化，并且比基于网格的方法产生的视觉干扰伪影更少。早期的体积方法使用观察到的图像直接为体素网格着色。最近，一些方法使用多个场景的大型数据集训练深度网络，从一组输入图像预测采样体积表示，然后在测试时使用 alpha 混合或沿光线的学习混合来渲染新视图。其他工作优化了每个特定场景的卷积网络（CNN）和采样体素网格的组合，以便 CNN 可以补偿低分辨率体素网格的离散化伪影，或者允许预测的体素网格根据输入时间或动画控制变化。</p>
+<p>虽然这些体积技术在新视图合成方面取得了令人印象深刻的结果，但由于其离散采样导致的时间和空间复杂性差，它们在高分辨率图像的扩展能力受到根本限制。我们通过在深度全连接神经网络的参数中编码一个连续体积来规避这个问题，这不仅比以前的体积方法产生显著更高质量的渲染，而且只需要这些采样体积表示的一小部分存储成本。</p>
+<br>
+
+<p><img src="https://github.com/adrianJW421/MyPicBed/raw/main/papers/nerf/17176740272593.jpg"></p>
+<p><br><br><br></p>
+<h2 id="Neural-Radiance-Field-Scene-Representation"><a href="#Neural-Radiance-Field-Scene-Representation" class="headerlink" title="Neural Radiance Field Scene Representation"></a>Neural Radiance Field Scene Representation</h2><p><a href="#jumpHere">〓 ReTURN 〓</a></p>
+<p>我们将连续场景表示为一个5D向量值函数，其输入是3D位置 $x &#x3D; (x, y, z)$ 和2D视角方向 $(θ, φ)$，输出是发射颜色 $c &#x3D; (r, g, b)$ 和体积密度 $\sigma$。在实际操作中，我们将方向表示为3D笛卡尔单位向量 $d$。我们用一个MLP网络 $F_Θ : (x, d) → (c, σ)$ 来近似这种连续的5D场景表示，并优化其权重 $\Theta$ 以将每个输入的5D坐标映射到其对应的体积密度和方向发射颜色。</p>
+<p>我们通过限制网络预测体积密度 $\sigma$ 仅作为位置 $x$ 的函数，同时允许RGB颜色 $c$ 作为位置和视角方向的函数来鼓励表示多视图一致性。为实现这一点，MLP $F_Θ$ 首先用8个全连接层（使用ReLU激活函数和每层256个通道）处理输入的3D坐标 $x$，并输出 $\sigma$ 和一个256维的特征向量。然后将该特征向量与相机光线的视角方向连接起来，并传递给一个额外的全连接层（使用ReLU激活函数和128个通道），输出视角依赖的RGB颜色。</p>
+<p>请参阅图3，了解我们的方法如何使用输入的视角方向来表示非朗伯效应。如图4所示，训练中没有视角依赖（仅以 $x$ 为输入）的模型在表示镜面反射方面存在困难。</p>
+<br>
+
+<p><img src="https://github.com/adrianJW421/MyPicBed/raw/main/papers/nerf/17176740783544.jpg"></p>
+<p><br><br><br></p>
+<h2 id="Volume-Rendering-with-Radiance-Fields"><a href="#Volume-Rendering-with-Radiance-Fields" class="headerlink" title="Volume Rendering with Radiance Fields"></a>Volume Rendering with Radiance Fields</h2><p><a href="#jumpHere">〓 ReTURN 〓</a></p>
+<p>我们的5D神经辐射场表示一个场景中的任何空间点的体积密度和方向发射辐射。我们使用经典体积渲染的原理来渲染穿过场景的光线颜色。体积密度 $\sigma(\mathbf{x})$ 可以解释为光线在位置 $\mathbf{x}$ 处终止于一个微小粒子的微分概率。相机光线 $\mathbf{r}(t)&#x3D;\mathbf{o}+t \mathbf{d}$ 的预期颜色 $C(\mathbf{r})$ 在近处和远处边界 $t_n$ 和 $t_f$ 之间为：</p>
+<p>$$<br>C(\mathbf{r})&#x3D;\int_{t_n}^{t_f} T(t) \sigma(\mathbf{r}(t)) \mathbf{c}(\mathbf{r}(t), \mathbf{d}) d t<br>$$<br>其中<br>$$<br>T(t)&#x3D;\exp \left(-\int_{t_n}^t \sigma(\mathbf{r}(s)) d s\right)<br>$$</p>
+<p>函数 $T(t)$ 表示沿光线从 $t_n$ 到 $t$ 的累积透射率，即光线从 $t_n$ 到 $t$ 而不碰到任何其他粒子的概率。从我们的连续神经辐射场渲染一个视图需要估计穿过所需虚拟相机的每个像素的相机光线的这个积分 $C(\mathbf{r})$。</p>
+<p>我们使用求积法数值估计这个连续积分。确定性求积法通常用于渲染离散体素网格，但这会有效地限制我们的表示的分辨率，因为 MLP 只能在固定的离散位置上查询。相反，我们使用分层采样方法，将 $[t_n, t_f]$ 分成 $N$ 个等间隔的区间，然后从每个区间内随机均匀地抽取一个样本：</p>
+<p>$$<br>t_i \sim \mathcal{U}\left[t_n+\frac{i-1}{N}\left(t_f-t_n\right), t_n+\frac{i}{N}\left(t_f-t_n\right)\right]<br>$$</p>
+<p>虽然我们使用离散样本集来估计积分，但分层采样使我们能够表示一个连续的场景表示，因为它使 MLP 在优化过程中在连续位置上进行评估。我们使用这些样本按照 Max 的体积渲染综述中讨论的求积规则来估计 $C(\mathbf{r})$：</p>
+<p>$$<br>\hat{C}(\mathbf{r})&#x3D;\sum_{i&#x3D;1}^N T_i\left(1-\exp \left(-\sigma_i \delta_i\right)\right) \mathbf{c}_i<br>$$</p>
+<p>其中 $$T_i&#x3D;\exp \left(-\sum_{j&#x3D;1}^{i-1} \sigma_j \delta_j\right)$$。</p>
+<p>再其中 $\delta_i&#x3D;t_{i+1}-t_i$ 是相邻样本之间的距离。这个函数从一组 $(\mathbf{c}_i, \sigma_i)$ 值计算 $\hat{C}(\mathbf{r})$ 是可微的，并简化为传统的 alpha 混合，alpha 值为 $\alpha_i&#x3D;1-\exp \left(-\sigma_i \delta_i\right)$。</p>
+<p><br><br><br></p>
+<h2 id="Optimizing-a-Neural-Radiance-Field"><a href="#Optimizing-a-Neural-Radiance-Field" class="headerlink" title="Optimizing a Neural Radiance Field"></a>Optimizing a Neural Radiance Field</h2><p><a href="#jumpHere">〓 ReTURN 〓</a></p>
+<p>在前一节中，我们描述了将场景建模为神经辐射场并从该表示中渲染新视图的核心组件。然而，我们观察到这些组件不足以实现最先进的质量，如第6.4节所示。我们引入了两个改进，以便表示高分辨率复杂场景。首先是输入坐标的位置编码，这有助于MLP表示高频函数；其次是分层采样程序，允许我们高效地采样这种高频表示。</p>
+<h3 id="Positional-encoding"><a href="#Positional-encoding" class="headerlink" title="Positional encoding"></a>Positional encoding</h3><p>尽管神经网络是通用函数逼近器，但我们发现让网络 $F_{\Theta}$ 直接操作 $x, y, z, \theta, \phi$ 输入坐标，在表示颜色和几何的高频变化方面表现不佳。这与最近Rahaman等人的研究一致，该研究表明深度网络倾向于学习低频函数。他们进一步表明，在将输入映射到更高维空间后再传递给网络，可以更好地拟合包含高频变化的数据。</p>
+<p>我们在神经场景表示的上下文中利用这些发现，并表明将 $F_{\Theta}$ 重新表述为两个函数的组合 $F_{\Theta}&#x3D;F_{\Theta}^{\prime} \circ \gamma$ ，一个是学习的，一个不是，可以显著提高性能。这里 $\gamma$ 是一个从 $\mathbb{R}$ 到更高维空间 $\mathbb{R}^{2L}$ 的映射， $F_{\Theta}^{\prime}$ 仍然是一个普通的MLP。我们使用的编码函数形式为：</p>
+<p>$$<br>\gamma(p)&#x3D;\left(\sin \left(2^0 \pi p\right), \cos \left(2^0 \pi p\right), \cdots, \sin \left(2^{L-1} \pi p\right), \cos \left(2^{L-1} \pi p\right)\right).<br>$$</p>
+<p>该函数 $\gamma(\cdot)$ 分别应用于 $\mathbf{x}$ 的三个坐标值（归一化到 $[-1, 1]$）和笛卡尔视角方向单位向量 $\mathbf{d}$ 的三个分量（归一化到 $[-1, 1]$）。在我们的实验中，我们设置 $\gamma(\mathbf{x})$ 的 $L&#x3D;10$ 和 $\gamma(\mathbf{d})$ 的 $L&#x3D;4$。</p>
+<p>类似的映射也被应用于流行的Transformer架构中，但目的是为序列中的离散位置提供输入，以便于没有顺序概念的架构中使用。相反，我们使用这些函数将连续输入坐标映射到更高维空间，以便我们的MLP更容易逼近高频函数。与研究3D蛋白质结构建模相关的并行工作也利用了类似的输入坐标映射。</p>
+<br>
+
+<p><img src="https://github.com/adrianJW421/MyPicBed/raw/main/papers/nerf/17176744742403.jpg"></p>
+<h3 id="Hierarchical-volume-sampling"><a href="#Hierarchical-volume-sampling" class="headerlink" title="Hierarchical volume sampling"></a>Hierarchical volume sampling</h3><p>我们通过在每条相机光线上评估神经辐射场网络的策略是低效的：自由空间和遮挡区域对渲染图像没有贡献，但仍然被反复采样。我们从早期的体积渲染工作中获得灵感，提出了一种分层表示，通过根据样本对最终渲染的预期影响分配样本来提高渲染效率。</p>
+<p>我们同时优化两个网络：一个“粗略的”，一个“精细的”。首先，使用分层采样法采样一组 $N_c$ 位置，并在这些位置评估“粗略的”网络。根据“粗略的”网络的输出，我们沿着每条光线生成一个更有信息量的采样点，这些样本偏向于体积的相关部分。为此，我们首先将“粗略的”网络的alpha混合颜色 $\hat{C}_c(r)$ 重写为沿光线的所有采样颜色 $c_i$ 的加权和：</p>
+<p>$$<br>\hat{C}<em>c(r)&#x3D;\sum</em>{i&#x3D;1}^{N_c} w_i c_i<br>$$, </p>
+<p>$$<br>w_i&#x3D;T_i\left(1-\exp \left(-\sigma_i \delta_i\right)\right)<br>$$</p>
+<p>将这些权重归一化为$\hat{w}<em>i&#x3D;\frac{w_i}{ \sum</em>{j&#x3D;1}^{N_c}w_j}$，生成沿光线的分段常数PDF。我们使用逆变换采样法从该分布中采样第二组 $N_f$ 位置，并在第一组和第二组样本的联合上评估我们的“精细的”网络，使用所有 $N_c + N_f$ 样本计算最终渲染颜色$\hat{C}_f(r)$。这个过程为我们预期包含可见内容的区域分配了更多样本。这个目标与重要性采样相似，但我们将采样值视为整个积分域的非均匀离散化，而不是将每个样本视为整个积分的独立概率估计。</p>
+<h3 id="Implementation-details"><a href="#Implementation-details" class="headerlink" title="Implementation details"></a>Implementation details</h3><p>我们为每个场景优化一个独立的神经连续体积表示网络。这仅需要场景的RGB图像数据集、相应的相机姿态和内在参数以及场景边界（对于合成数据，我们使用真实的相机姿态、内在参数和边界；对于真实数据，我们使用COLMAP结构光恢复包来估算这些参数）。</p>
+<p>在每次优化迭代中，我们从数据集中所有像素的集合中随机采样一批相机光线，然后按照第5.2节所述的分层采样，从粗网络中查询 $N_c$ 个样本，从精网络中查询 $N_c+N_f$ 个样本。接着，我们使用第4节描述的体积渲染程序，从这两组样本中渲染每条光线的颜色。我们的损失函数是渲染颜色和真实像素颜色之间的总平方误差：</p>
+<p>$$<br>\mathcal{L}&#x3D;\sum_{\mathbf{r} \in \mathcal{R}}\left[\left|\hat{C}_c(\mathbf{r})-C(\mathbf{r})\right|_2^2+\left|\hat{C}_f(\mathbf{r})-C(\mathbf{r})\right|_2^2\right]<br>$$</p>
+<p>其中 $\mathcal{R}$ 是每批次的光线集合， $C(\mathbf{r}), \hat{C}_c(\mathbf{r})$ 和 $\hat{C}_f(\mathbf{r})$ 分别是光线 $\mathbf{r}$ 的真实RGB颜色、粗体积预测颜色和精体积预测颜色。尽管最终渲染来自 $\hat{C}_f(\mathbf{r})$，我们也最小化 $\hat{C}_c(\mathbf{r})$ 的损失，以便粗网络的权重分布可以用于精网络的样本分配。</p>
+<p>在我们的实验中，我们使用4096条光线的批次大小，每条光线在粗体积中采样64个坐标，在精体积中额外采样128个坐标。我们使用Adam优化器，学习率初始为 $5 \times 10^{-4}$ 并在优化过程中指数衰减到 $5 \times 10^{-5}$（其他Adam超参数保持默认值 $\beta_1&#x3D;0.9, \beta_2&#x3D;0.999$ 和 $\epsilon&#x3D;10^{-7}$）。单个场景的优化通常在一张NVIDIA V100 GPU上需要大约100到300千次迭代（约1-2天）才能收敛。</p>
+<p><br><br><br></p>
+<h2 id="Results"><a href="#Results" class="headerlink" title="Results"></a>Results</h2><p><a href="#jumpHere">〓 ReTURN 〓</a></p>
+<p><img src="https://github.com/adrianJW421/MyPicBed/raw/main/papers/nerf/17176746259095.jpg"></p>
+<h3 id="数据集"><a href="#数据集" class="headerlink" title="数据集"></a>数据集</h3><p><strong>合成物体渲染</strong> 我们首先在两个合成物体渲染数据集上展示实验结果（表1，“Diffuse Synthetic $360^{\circ}$” 和 “Realistic Synthetic $360^{\circ}$”）。DeepVoxels 数据集包含四个具有简单几何形状的朗伯对象。每个对象从上半球的视点渲染，分辨率为512x512像素（479个作为输入，1000个用于测试）。我们还生成了包含八个对象的路径追踪图像的数据集，这些对象展示了复杂的几何形状和现实的非朗伯材料。六个对象从上半球的视点渲染，两个对象从全球的视点渲染。每个场景渲染100个视图作为输入，200个视图用于测试，分辨率为800x800像素。</p>
+<p><strong>复杂场景的真实图像</strong> 我们展示了用大致前向图像捕获的复杂真实世界场景的结果（表1，“Real ForwardFacing”）。该数据集包含用手持手机捕获的8个场景（5个来自LLFF论文，3个由我们捕获），捕获了20到62张图像，并保留1&#x2F;8的图像用于测试集。所有图像的分辨率为1008x756像素。</p>
+<h3 id="比较"><a href="#比较" class="headerlink" title="比较"></a>比较</h3><p>为了评估我们的模型，我们与当前性能最好的视图合成技术进行了比较。所有方法使用相同的输入视图集来为每个场景训练一个单独的网络，除了Local Light Field Fusion (LLFF)，它在一个大型数据集上训练单个3D卷积网络，然后使用相同的训练网络处理新场景的输入图像。</p>
+<p><strong>Neural Volumes (NV)</strong> 合成在一个有界体积内并位于独特背景前的对象的新视图。它优化一个深度3D卷积网络来预测包含128^3个样本的离散化RGB alpha体素网格，以及包含32^3个样本的3D变形网格。算法通过在变形体素网格中行进相机光线来渲染新视图。</p>
+<p><strong>Scene Representation Networks (SRN)</strong> 将连续场景表示为不透明表面，由MLP隐式定义，该MLP将每个 (x, y, z) 坐标映射到一个特征向量。他们训练一个循环神经网络通过使用任何3D坐标处的特征向量来预测沿光线的下一个步长，从而在场景表示中行进光线。最终步长的特征向量被解码为该表面点的单一颜色。SRN是同一作者在DeepVoxels基础上的更好表现的后续研究，因此我们没有包括DeepVoxels的比较。</p>
+<p><strong>Local Light Field Fusion (LLFF)</strong> 设计用于为采样良好的前向场景生成照片真实感的新视图。它使用训练好的3D卷积网络直接预测每个输入视图的离散化棱锥采样RGB alpha网格（多平面图像或MPI），然后通过alpha混合和混合附近的MPI来渲染新视图。</p>
+<h3 id="讨论"><a href="#讨论" class="headerlink" title="讨论"></a>讨论</h3><p>我们在所有场景中全面超越了NV和SRN基线。此外，我们生成的渲染在定量和定性上优于LLFF（除了一个指标），而仅使用它们的输入图像作为我们的整个训练集。SRN方法生成了高度平滑的几何形状和纹理，其视图合成表示能力受限于每条相机光线仅选择单一深度和颜色。NV基线能够捕获合理详细的体积几何和外观，但其使用的128^3体素网格限制了它在高分辨率下表示细节的能力。LLFF提供了一个“采样指南”，建议输入视图之间的视差不超过64像素，因此在合成数据集中包含400-500像素视差时，常常无法估计正确的几何。此外，LLFF在渲染不同视图时在不同场景表示之间进行混合，导致感知上分散的不一致性。</p>
+<p>这些方法之间最大的实际权衡是时间与空间。所有比较的单场景方法每个场景的训练时间至少为12小时。相比之下，LLFF可以在10分钟内处理一个小输入数据集。然而，LLFF为每个输入图像生成一个大的3D体素网格，导致巨大的存储需求（一个“Realistic Synthetic”场景超过15GB）。我们的方法只需要5MB的网络权重（相对于LLFF的3000倍压缩），甚至比我们任何数据集中单个场景的输入图像本身所需的内存还少。</p>
+<h3 id="消融研究"><a href="#消融研究" class="headerlink" title="消融研究"></a>消融研究</h3><p>我们在表2中通过广泛的消融研究验证了算法的设计选择和参数。我们在“Realistic Synthetic $360^{\circ}$”场景上展示结果。第9行显示了作为参考点的完整模型。第1行显示了没有位置编码（PE）、视角依赖（VD）或分层采样（H）的最小化版本模型。在第2-4行中，我们从完整模型中逐一移除这三个组件，观察到位置编码（第2行）和视角依赖（第3行）提供了最大的定量益处，其次是分层采样（第4行）。第5-6行显示了输入图像数量减少时我们的性能下降。请注意，我们的方法使用仅25个输入图像时的性能仍然超过了NV、SRN和LLFF在提供100个图像时的所有指标（见补充材料）。在第7-8行中，我们验证了用于 $\mathbf{x}$ 的位置编码的最大频率 $L$ 的选择（用于 $\mathbf{d}$ 的最大频率按比例缩放）。仅使用5个频率会降低性能，但将频率从10增加到15并不能提高性能。我们认为，随着 $2^L$ 超过采样输入图像中的最大频率（大约1024），增加 $L$ 的益处有限。</p>
+<p><img src="https://github.com/adrianJW421/MyPicBed/raw/main/papers/nerf/17176746642306.jpg"></p>
+<br>
+
+<p><img src="https://github.com/adrianJW421/MyPicBed/raw/main/papers/nerf/17176746789424.jpg"></p>
+<br>
+
+<p><img src="https://github.com/adrianJW421/MyPicBed/raw/main/papers/nerf/17176747233709.jpg"></p>
+<p><br><br><br></p>
+<h2 id="Conclusion"><a href="#Conclusion" class="headerlink" title="Conclusion"></a>Conclusion</h2><p><a href="#jumpHere">〓 ReTURN 〓</a></p>
+<p>我们的工作直接解决了使用MLPs（多层感知器）将物体和场景表示为连续函数的前人工作的不足。我们证明了将场景表示为5D神经辐射场（一个以3D位置和2D视角为函数输出体积密度和视角相关发射辐射的MLP）比之前主流的训练深度卷积网络输出离散体素表示的方法产生更好的渲染效果。</p>
+<p>尽管我们提出了分层采样策略以提高渲染的采样效率（适用于训练和测试），但在高效优化和渲染神经辐射场的技术研究方面仍有很大进展空间。未来的另一个研究方向是可解释性：如体素网格和网格这样的采样表示允许对渲染视图的预期质量和失败模式进行推理，但当我们将场景编码在深度神经网络的权重中时，如何分析这些问题尚不明确。</p>
+<p>我们相信，这项工作在基于真实世界图像的图形管道方面取得了进展，其中复杂场景可以由从实际物体和场景图像中优化的神经辐射场组成。</p>
+<p><br><br><br></p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><p><a href="#jumpHere">〓 ReTURN 〓</a></p>
+<ol>
+<li><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1CC411V7oq/?spm_id_from=333.337.search-card.all.click&vd_source=79dd75bdbe89b6c71e9e0bb394ba77d4">https://www.bilibili.com/video/BV1CC411V7oq/?spm_id_from=333.337.search-card.all.click&amp;vd_source=79dd75bdbe89b6c71e9e0bb394ba77d4</a></li>
+</ol>
+</div><div class="article-licensing box"><div class="licensing-title"><p>NeRF原论文及教程</p><p><a href="https://nerozac.com/2024/06/11/NeRF原论文及教程/">https://nerozac.com/2024/06/11/NeRF原论文及教程/</a></p></div><div class="licensing-meta level is-mobile"><div class="level-left"><div class="level-item is-narrow"><div><h6>作者</h6><p>Jiawei Li</p></div></div><div class="level-item is-narrow"><div><h6>发布于</h6><p>2024-06-11</p></div></div><div class="level-item is-narrow"><div><h6>更新于</h6><p>2024-06-11</p></div></div><div class="level-item is-narrow"><div><h6>许可协议</h6><p><a class="icons" rel="noopener" target="_blank" title="Creative Commons" href="https://creativecommons.org/"><i class="icon fab fa-creative-commons"></i></a><a class="icons" rel="noopener" target="_blank" title="Attribution" href="https://creativecommons.org/licenses/by/4.0/"><i class="icon fab fa-creative-commons-by"></i></a><a class="icons" rel="noopener" target="_blank" title="Noncommercial" href="https://creativecommons.org/licenses/by-nc/4.0/"><i class="icon fab fa-creative-commons-nc"></i></a></p></div></div></div></div></div><div class="article-tags is-size-7 mb-4"><span class="mr-2">#</span><a class="link-muted mr-2" rel="tag" href="/tags/%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/">论文阅读</a><a class="link-muted mr-2" rel="tag" href="/tags/%E4%B8%89%E7%BB%B4%E9%87%8D%E5%BB%BA/">三维重建</a></div><div class="sharethis-inline-share-buttons"></div><script src="nerozac.com" defer></script></article></div><!--!--><nav class="post-navigation mt-4 level is-mobile"><div class="level-end"><a class="article-nav-next level level-item link-muted" href="/2024/06/11/Buffer-of-Thoughts/"><span class="level-item">Buffer of Thoughts - Thought-Augmented Reasoning with Large Language Models</span><i class="level-item fas fa-chevron-right"></i></a></div></nav><!--!--></div><div class="column column-left is-4-tablet is-4-desktop is-4-widescreen  order-1"><div class="card widget" data-type="profile"><div class="card-content"><nav class="level"><div class="level-item has-text-centered flex-shrink-1"><div><figure class="image is-128x128 mx-auto mb-2"><img class="avatar" src="/img/jlijz2.jpg" alt="Jiawei Li"></figure><p class="title is-size-4 is-block" style="line-height:inherit;">Jiawei Li</p><p class="is-size-6 is-block">CSE PhD student at HKUST. Focusing on Large Language Model Agents and 3D databases.</p><p class="is-size-6 is-flex justify-content-center"><i class="fas fa-map-marker-alt mr-1"></i><span>Clear Water Bay, Kowloon, Hong Kong</span></p></div></div></nav><nav class="level is-mobile"><div class="level-item has-text-centered is-marginless"><div><p class="heading">文章</p><a href="/archives"><p class="title">18</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">分类</p><a href="/categories"><p class="title">18</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">标签</p><a href="/tags"><p class="title">25</p></a></div></div></nav><div class="level"><a class="level-item button is-primary is-rounded" href="https://github.com/adrianJW421" target="_blank" rel="noopener">关注我</a></div><div class="level is-mobile is-multiline"><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="Github" href="https://github.com/adrianJW421"><i class="fab fa-github"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="Facebook" href="/null"><i class="fab fa-facebook"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="Twitter" href="/null"><i class="fab fa-twitter"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="Dribbble" href="/null"><i class="fab fa-dribbble"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="RSS" href="/"><i class="fas fa-rss"></i></a></div></div></div><div class="card widget" id="toc" data-type="toc"><div class="card-content"><div class="menu"><h3 class="menu-label">目录</h3><ul class="menu-list"><li><a class="level is-mobile" href="#原文资源"><span class="level-left"><span class="level-item">1</span><span class="level-item">原文资源</span></span></a></li><li><a class="level is-mobile" href="#Abstract"><span class="level-left"><span class="level-item">2</span><span class="level-item">Abstract</span></span></a></li><li><a class="level is-mobile" href="#Introduction"><span class="level-left"><span class="level-item">3</span><span class="level-item">Introduction</span></span></a></li><li><a class="level is-mobile" href="#Related-Work"><span class="level-left"><span class="level-item">4</span><span class="level-item">Related Work</span></span></a><ul class="menu-list"><li><a class="level is-mobile" href="#神经-3D-形状表示"><span class="level-left"><span class="level-item">4.1</span><span class="level-item">神经 3D 形状表示</span></span></a></li><li><a class="level is-mobile" href="#视图合成和基于图像的渲染"><span class="level-left"><span class="level-item">4.2</span><span class="level-item">视图合成和基于图像的渲染</span></span></a></li></ul></li><li><a class="level is-mobile" href="#Neural-Radiance-Field-Scene-Representation"><span class="level-left"><span class="level-item">5</span><span class="level-item">Neural Radiance Field Scene Representation</span></span></a></li><li><a class="level is-mobile" href="#Volume-Rendering-with-Radiance-Fields"><span class="level-left"><span class="level-item">6</span><span class="level-item">Volume Rendering with Radiance Fields</span></span></a></li><li><a class="level is-mobile" href="#Optimizing-a-Neural-Radiance-Field"><span class="level-left"><span class="level-item">7</span><span class="level-item">Optimizing a Neural Radiance Field</span></span></a><ul class="menu-list"><li><a class="level is-mobile" href="#Positional-encoding"><span class="level-left"><span class="level-item">7.1</span><span class="level-item">Positional encoding</span></span></a></li><li><a class="level is-mobile" href="#Hierarchical-volume-sampling"><span class="level-left"><span class="level-item">7.2</span><span class="level-item">Hierarchical volume sampling</span></span></a></li><li><a class="level is-mobile" href="#Implementation-details"><span class="level-left"><span class="level-item">7.3</span><span class="level-item">Implementation details</span></span></a></li></ul></li><li><a class="level is-mobile" href="#Results"><span class="level-left"><span class="level-item">8</span><span class="level-item">Results</span></span></a><ul class="menu-list"><li><a class="level is-mobile" href="#数据集"><span class="level-left"><span class="level-item">8.1</span><span class="level-item">数据集</span></span></a></li><li><a class="level is-mobile" href="#比较"><span class="level-left"><span class="level-item">8.2</span><span class="level-item">比较</span></span></a></li><li><a class="level is-mobile" href="#讨论"><span class="level-left"><span class="level-item">8.3</span><span class="level-item">讨论</span></span></a></li><li><a class="level is-mobile" href="#消融研究"><span class="level-left"><span class="level-item">8.4</span><span class="level-item">消融研究</span></span></a></li></ul></li><li><a class="level is-mobile" href="#Conclusion"><span class="level-left"><span class="level-item">9</span><span class="level-item">Conclusion</span></span></a></li><li><a class="level is-mobile" href="#参考资料"><span class="level-left"><span class="level-item">10</span><span class="level-item">参考资料</span></span></a></li></ul></div></div><style>#toc .menu-list > li > a.is-active + .menu-list { display: block; }#toc .menu-list > li > a + .menu-list { display: none; }</style><script src="/js/toc.js" defer></script></div><div class="card widget" data-type="links"><div class="card-content"><div class="menu"><h3 class="menu-label">链接</h3><ul class="menu-list"><li><a class="level is-mobile" href="https://nerozac.com/" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">link1</span></span><span class="level-right"><span class="level-item tag">nerozac.com</span></span></a></li></ul></div></div></div><div class="card widget" data-type="categories"><div class="card-content"><div class="menu"><h3 class="menu-label">分类</h3><ul class="menu-list"><li><a class="level is-mobile" href="/categories/DSF/"><span class="level-start"><span class="level-item">DSF</span></span><span class="level-end"><span class="level-item tag">1</span></span></a><ul><li><a class="level is-mobile" href="/categories/DSF/%E6%9C%8D%E5%8A%A1%E5%99%A8%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE/"><span class="level-start"><span class="level-item">服务器环境配置</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li></ul></li><li><a class="level is-mobile" href="/categories/%E5%A5%BD%E6%96%87%E8%BD%AC%E8%BD%BD/"><span class="level-start"><span class="level-item">好文转载</span></span><span class="level-end"><span class="level-item tag">2</span></span></a><ul><li><a class="level is-mobile" href="/categories/%E5%A5%BD%E6%96%87%E8%BD%AC%E8%BD%BD/NLP/"><span class="level-start"><span class="level-item">NLP</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile" href="/categories/%E5%A5%BD%E6%96%87%E8%BD%AC%E8%BD%BD/%E5%A4%A7%E7%A5%9E%E8%AF%AD%E5%BD%95/"><span class="level-start"><span class="level-item">大神语录</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li></ul></li><li><a class="level is-mobile" href="/categories/%E6%8A%80%E6%9C%AF%E7%99%BE%E7%A7%91/"><span class="level-start"><span class="level-item">技术百科</span></span><span class="level-end"><span class="level-item tag">9</span></span></a><ul><li><a class="level is-mobile" href="/categories/%E6%8A%80%E6%9C%AF%E7%99%BE%E7%A7%91/MacOS/"><span class="level-start"><span class="level-item">MacOS</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile" href="/categories/%E6%8A%80%E6%9C%AF%E7%99%BE%E7%A7%91/Python/"><span class="level-start"><span class="level-item">Python</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile" href="/categories/%E6%8A%80%E6%9C%AF%E7%99%BE%E7%A7%91/computer-vision/"><span class="level-start"><span class="level-item">computer_vision</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile" href="/categories/%E6%8A%80%E6%9C%AF%E7%99%BE%E7%A7%91/gitlab/"><span class="level-start"><span class="level-item">gitlab</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile" href="/categories/%E6%8A%80%E6%9C%AF%E7%99%BE%E7%A7%91/%E4%B8%89%E7%BB%B4%E9%87%8D%E5%BB%BA/"><span class="level-start"><span class="level-item">三维重建</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile" href="/categories/%E6%8A%80%E6%9C%AF%E7%99%BE%E7%A7%91/%E7%B3%BB%E7%BB%9F%E7%8E%AF%E5%A2%83%E5%8F%8A%E7%BC%96%E8%AF%91/"><span class="level-start"><span class="level-item">系统环境及编译</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile" href="/categories/%E6%8A%80%E6%9C%AF%E7%99%BE%E7%A7%91/%E8%A7%86%E9%A2%91%E7%BC%96%E8%BE%91/"><span class="level-start"><span class="level-item">视频编辑</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li></ul></li><li><a class="level is-mobile" href="/categories/%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/"><span class="level-start"><span class="level-item">论文阅读</span></span><span class="level-end"><span class="level-item tag">6</span></span></a><ul><li><a class="level is-mobile" href="/categories/%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/3DLLM/"><span class="level-start"><span class="level-item">3DLLM</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile" href="/categories/%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/LLMAgent/"><span class="level-start"><span class="level-item">LLMAgent</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile" href="/categories/%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/PCDM/"><span class="level-start"><span class="level-item">PCDM</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile" href="/categories/%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/%E4%B8%89%E7%BB%B4%E9%87%8D%E5%BB%BA/"><span class="level-start"><span class="level-item">三维重建</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li></ul></li></ul></div></div></div><div class="card widget" data-type="recent-posts"><div class="card-content"><h3 class="menu-label">最新文章</h3><article class="media"><div class="media-content"><p class="date"><time dateTime="2024-06-11T08:08:49.678Z">2024-06-11</time></p><p class="title"><a href="/2024/06/11/NeRF%E5%8E%9F%E8%AE%BA%E6%96%87%E5%8F%8A%E6%95%99%E7%A8%8B/">NeRF原论文及教程</a></p><p class="categories"><a href="/categories/%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/">论文阅读</a> / <a href="/categories/%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/%E4%B8%89%E7%BB%B4%E9%87%8D%E5%BB%BA/">三维重建</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2024-06-11T08:05:29.112Z">2024-06-11</time></p><p class="title"><a href="/2024/06/11/Buffer-of-Thoughts/">Buffer of Thoughts - Thought-Augmented Reasoning with Large Language Models</a></p><p class="categories"><a href="/categories/%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/">论文阅读</a> / <a href="/categories/%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/LLMAgent/">LLMAgent</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2024-06-06T08:48:57.589Z">2024-06-06</time></p><p class="title"><a href="/2024/06/06/Instructions-for-PhD-Students/">大牛谏言 Instructions for PhD Students</a></p><p class="categories"><a href="/categories/%E5%A5%BD%E6%96%87%E8%BD%AC%E8%BD%BD/">好文转载</a> / <a href="/categories/%E5%A5%BD%E6%96%87%E8%BD%AC%E8%BD%BD/%E5%A4%A7%E7%A5%9E%E8%AF%AD%E5%BD%95/">大神语录</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2024-06-06T08:48:57.589Z">2024-06-06</time></p><p class="title"><a href="/2024/06/06/TinyCudaNN/">TinyCudaNN</a></p><p class="categories"><a href="/categories/%E6%8A%80%E6%9C%AF%E7%99%BE%E7%A7%91/">技术百科</a> / <a href="/categories/%E6%8A%80%E6%9C%AF%E7%99%BE%E7%A7%91/%E4%B8%89%E7%BB%B4%E9%87%8D%E5%BB%BA/">三维重建</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2024-06-06T08:48:57.588Z">2024-06-06</time></p><p class="title"><a href="/2024/06/06/3d-point-network-distillation-via-3d-fusion/">3D point network distillation from an open-vocabulary 2D image model via 3D fusion</a></p><p class="categories"><a href="/categories/%E6%8A%80%E6%9C%AF%E7%99%BE%E7%A7%91/">技术百科</a> / <a href="/categories/%E6%8A%80%E6%9C%AF%E7%99%BE%E7%A7%91/%E4%B8%89%E7%BB%B4%E9%87%8D%E5%BB%BA/">三维重建</a></p></div></article></div></div><div class="card widget" data-type="archives"><div class="card-content"><div class="menu"><h3 class="menu-label">归档</h3><ul class="menu-list"><li><a class="level is-mobile" href="/archives/2024/06/"><span class="level-start"><span class="level-item">六月 2024</span></span><span class="level-end"><span class="level-item tag">14</span></span></a></li><li><a class="level is-mobile" href="/archives/2024/05/"><span class="level-start"><span class="level-item">五月 2024</span></span><span class="level-end"><span class="level-item tag">4</span></span></a></li></ul></div></div></div><div class="card widget" data-type="tags"><div class="card-content"><div class="menu"><h3 class="menu-label">标签</h3><div class="field is-grouped is-grouped-multiline"><div class="control"><a class="tags has-addons" href="/tags/3DLLM/"><span class="tag">3DLLM</span><span class="tag">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/CUDA%E9%A9%B1%E5%8A%A8/"><span class="tag">CUDA驱动</span><span class="tag">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/DSF/"><span class="tag">DSF</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/LLMAgent/"><span class="tag">LLMAgent</span><span class="tag">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/MacOS/"><span class="tag">MacOS</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/NLP/"><span class="tag">NLP</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/PCDM/"><span class="tag">PCDM</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Python/"><span class="tag">Python</span><span class="tag">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Transformer/"><span class="tag">Transformer</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/computer-vision/"><span class="tag">computer_vision</span><span class="tag">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/conda-forge/"><span class="tag">conda-forge</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/docker/"><span class="tag">docker</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/gcc/"><span class="tag">gcc</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/gitlab/"><span class="tag">gitlab</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E4%B8%89%E7%BB%B4%E9%87%8D%E5%BB%BA/"><span class="tag">三维重建</span><span class="tag">3</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E5%8D%9A%E5%A3%AB%E7%94%9F%E6%B6%AF/"><span class="tag">博士生涯</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E5%A4%96%E6%8E%A5%E8%AE%BE%E5%A4%87/"><span class="tag">外接设备</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E5%A4%A7%E7%A5%9E%E8%AF%AD%E5%BD%95/"><span class="tag">大神语录</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E5%A5%BD%E6%96%87%E8%BD%AC%E8%BD%BD/"><span class="tag">好文转载</span><span class="tag">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E6%8A%80%E6%9C%AF%E7%99%BE%E7%A7%91/"><span class="tag">技术百科</span><span class="tag">7</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E6%9C%8D%E5%8A%A1%E5%99%A8/"><span class="tag">服务器</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E7%82%B9%E4%BA%91/"><span class="tag">点云</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E7%B3%BB%E7%BB%9F%E7%8E%AF%E5%A2%83%E5%8F%8A%E7%BC%96%E8%AF%91/"><span class="tag">系统环境及编译</span><span class="tag">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E8%A7%86%E9%A2%91%E7%BC%96%E8%BE%91/"><span class="tag">视频编辑</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/"><span class="tag">论文阅读</span><span class="tag">6</span></a></div></div></div></div></div></div><!--!--></div></div></section><footer class="footer"><div class="container"><div class="level"><div class="level-start"><a class="footer-logo is-block mb-2" href="/">Zac&#039;s Blog</a><p class="is-size-7"><span>&copy; 2024 Jiawei Li</span>  Powered by <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a> &amp; <a href="https://github.com/ppoffice/hexo-theme-icarus" target="_blank" rel="noopener">Icarus</a></p></div><div class="level-end"><div class="field has-addons"><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Attribution 4.0 International" href="https://creativecommons.org/licenses/by/4.0/"><i class="fab fa-creative-commons-by"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Download on GitHub" href="https://github.com/adrianJW421"><i class="fab fa-github"></i></a></p></div></div></div></div></footer><script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/moment@2.22.2/min/moment-with-locales.min.js"></script><script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.4/dist/clipboard.min.js" defer></script><script>moment.locale("zh-cn");</script><script>var IcarusThemeSettings = {
+            article: {
+                highlight: {
+                    clipboard: true,
+                    fold: 'unfolded'
+                }
+            }
+        };</script><script src="/js/column.js"></script><script src="/js/animation.js"></script><a id="back-to-top" title="回到顶端" href="javascript:;"><i class="fas fa-chevron-up"></i></a><script src="/js/back_to_top.js" defer></script><!--!--><!--!--><!--!--><script src="https://cdn.jsdelivr.net/npm/cookieconsent@3.1.1/build/cookieconsent.min.js" defer></script><script>window.addEventListener("load", () => {
+      window.cookieconsent.initialise({
+        type: "info",
+        theme: "edgeless",
+        static: false,
+        position: "bottom-left",
+        content: {
+          message: "此网站使用Cookie来改善您的体验。",
+          dismiss: "知道了！",
+          allow: "允许使用Cookie",
+          deny: "拒绝",
+          link: "了解更多",
+          policy: "Cookie政策",
+          href: "https://www.cookiesandyou.com/",
+        },
+        palette: {
+          popup: {
+            background: "#edeff5",
+            text: "#838391"
+          },
+          button: {
+            background: "#4b81e8"
+          },
+        },
+      });
+    });</script><script src="https://cdn.jsdelivr.net/npm/lightgallery@1.10.0/dist/js/lightgallery.min.js" defer></script><script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.8.1/dist/js/jquery.justifiedGallery.min.js" defer></script><script>window.addEventListener("load", () => {
+            if (typeof $.fn.lightGallery === 'function') {
+                $('.article').lightGallery({ selector: '.gallery-item' });
+            }
+            if (typeof $.fn.justifiedGallery === 'function') {
+                if ($('.justified-gallery > p > .gallery-item').length) {
+                    $('.justified-gallery > p > .gallery-item').unwrap();
+                }
+                $('.justified-gallery').justifiedGallery();
+            }
+        });</script><!--!--><!--!--><script type="text/javascript" id="MathJax-script" async>MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']]
+      },
+      svg: {
+        fontCache: 'global'
+      },
+      chtml: {
+        matchFontHeight: false
+      }
+    };</script><script src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js"></script><!--!--><!--!--><!--!--><script src="/js/main.js" defer></script><div class="searchbox"><div class="searchbox-container"><div class="searchbox-header"><div class="searchbox-input-container"><input class="searchbox-input" type="text" placeholder="想要查找什么..."></div><a class="searchbox-close" href="javascript:;">×</a></div><div class="searchbox-body"></div></div></div><script src="/js/insight.js" defer></script><script>document.addEventListener('DOMContentLoaded', function () {
+            loadInsight({"contentUrl":"/content.json"}, {"hint":"想要查找什么...","untitled":"(无标题)","posts":"文章","pages":"页面","categories":"分类","tags":"标签"});
+        });</script></body></html>

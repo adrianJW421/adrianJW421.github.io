@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="zh"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><meta><title>Buffer of Thoughts - Thought-Augmented Reasoning with Large Language Models - NeroZac</title><link rel="manifest" href="/manifest.json"><meta name="application-name" content="Zac&#039;s Blog"><meta name="msapplication-TileImage" content="/img/avatar.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Zac&#039;s Blog"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="description" content="摘要:  本文介绍了Buffer of Thoughts（BoT），这是一种新颖且多功能的思想增强推理方法，用于提高大型语言模型（LLMs）的准确性、效率和鲁棒性。具体来说，我们提出了meta-buffer，用于存储一系列从不同任务的问题解决过程中提取的有用高级思想，即thought-template。然后，对于每个问题，我们检索相关的thought-template，并自适应地用具体的推理结构实"><meta property="og:type" content="blog"><meta property="og:title" content="Zac&#039;s Blog"><meta property="og:url" content="https://nerozac.com/2024/06/11/Buffer-of-Thoughts/"><meta property="og:site_name" content="Jiawei Li (Zac)"><meta property="og:description" content="摘要:  本文介绍了Buffer of Thoughts（BoT），这是一种新颖且多功能的思想增强推理方法，用于提高大型语言模型（LLMs）的准确性、效率和鲁棒性。具体来说，我们提出了meta-buffer，用于存储一系列从不同任务的问题解决过程中提取的有用高级思想，即thought-template。然后，对于每个问题，我们检索相关的thought-template，并自适应地用具体的推理结构实"><meta property="og:locale" content="zh_CN"><meta property="og:image" content="https://github.com/adrianJW421/MyPicBed/raw/main/papers/Buffer_of_Thoughts/17178464835875.jpg"><meta property="og:image" content="https://github.com/adrianJW421/MyPicBed/raw/main/papers/Buffer_of_Thoughts/17178514287128.jpg"><meta property="og:image" content="https://github.com/adrianJW421/MyPicBed/raw/main/papers/Buffer_of_Thoughts/17178516519266.jpg"><meta property="og:image" content="https://github.com/adrianJW421/MyPicBed/raw/main/papers/Buffer_of_Thoughts/17178517890749.jpg"><meta property="og:image" content="https://github.com/adrianJW421/MyPicBed/raw/main/papers/Buffer_of_Thoughts/17178517987219.jpg"><meta property="og:image" content="https://github.com/adrianJW421/MyPicBed/raw/main/papers/Buffer_of_Thoughts/17178518817743.jpg"><meta property="og:image" content="https://github.com/adrianJW421/MyPicBed/raw/main/papers/Buffer_of_Thoughts/17178518966614.jpg"><meta property="og:image" content="https://github.com/adrianJW421/MyPicBed/raw/main/papers/Buffer_of_Thoughts/17178519923892.jpg"><meta property="og:image" content="https://github.com/adrianJW421/MyPicBed/raw/main/papers/Buffer_of_Thoughts/17178519999870.jpg"><meta property="og:image" content="https://github.com/adrianJW421/MyPicBed/raw/main/papers/Buffer_of_Thoughts/17178520093085.jpg"><meta property="og:image" content="https://github.com/adrianJW421/MyPicBed/raw/main/papers/Buffer_of_Thoughts/17178520197769.jpg"><meta property="article:published_time" content="2024-06-11T08:05:29.112Z"><meta property="article:modified_time" content="2024-06-11T08:09:47.060Z"><meta property="article:author" content="Jiawei Li (Zac)"><meta property="article:tag" content="论文阅读"><meta property="article:tag" content="LLMAgent"><meta property="twitter:card" content="summary"><meta property="twitter:image:src" content="https://github.com/adrianJW421/MyPicBed/raw/main/papers/Buffer_of_Thoughts/17178464835875.jpg"><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"https://nerozac.com/2024/06/11/Buffer-of-Thoughts/"},"headline":"Zac's Blog","image":["https://github.com/adrianJW421/MyPicBed/raw/main/papers/Buffer_of_Thoughts/17178464835875.jpg","https://github.com/adrianJW421/MyPicBed/raw/main/papers/Buffer_of_Thoughts/17178514287128.jpg","https://github.com/adrianJW421/MyPicBed/raw/main/papers/Buffer_of_Thoughts/17178516519266.jpg","https://github.com/adrianJW421/MyPicBed/raw/main/papers/Buffer_of_Thoughts/17178517890749.jpg","https://github.com/adrianJW421/MyPicBed/raw/main/papers/Buffer_of_Thoughts/17178517987219.jpg","https://github.com/adrianJW421/MyPicBed/raw/main/papers/Buffer_of_Thoughts/17178518817743.jpg","https://github.com/adrianJW421/MyPicBed/raw/main/papers/Buffer_of_Thoughts/17178518966614.jpg","https://github.com/adrianJW421/MyPicBed/raw/main/papers/Buffer_of_Thoughts/17178519923892.jpg","https://github.com/adrianJW421/MyPicBed/raw/main/papers/Buffer_of_Thoughts/17178519999870.jpg","https://github.com/adrianJW421/MyPicBed/raw/main/papers/Buffer_of_Thoughts/17178520093085.jpg","https://github.com/adrianJW421/MyPicBed/raw/main/papers/Buffer_of_Thoughts/17178520197769.jpg"],"datePublished":"2024-06-11T08:05:29.112Z","dateModified":"2024-06-11T08:09:47.060Z","author":{"@type":"Person","name":"Jiawei Li"},"publisher":{"@type":"Organization","name":"NeroZac","logo":{"@type":"ImageObject","url":{"text":"Zac's Blog"}}},"description":"摘要:  本文介绍了Buffer of Thoughts（BoT），这是一种新颖且多功能的思想增强推理方法，用于提高大型语言模型（LLMs）的准确性、效率和鲁棒性。具体来说，我们提出了meta-buffer，用于存储一系列从不同任务的问题解决过程中提取的有用高级思想，即thought-template。然后，对于每个问题，我们检索相关的thought-template，并自适应地用具体的推理结构实"}</script><link rel="canonical" href="https://nerozac.com/2024/06/11/Buffer-of-Thoughts/"><link rel="icon" href="/img/avatar.png"><link rel="stylesheet" href="https://use.fontawesome.com/releases/v6.0.0/css/all.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.7.0/styles/atom-one-light.css"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;600&amp;family=Source+Code+Pro"><link rel="stylesheet" href="/css/default.css"><style>body>.footer,body>.navbar,body>.section{opacity:0}</style><!--!--><!--!--><!--!--><!--!--><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cookieconsent@3.1.1/build/cookieconsent.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@1.10.0/dist/css/lightgallery.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/justifiedGallery@3.8.1/dist/css/justifiedGallery.min.css"><!--!--><!--!--><!--!--><style>.pace{-webkit-pointer-events:none;pointer-events:none;-webkit-user-select:none;-moz-user-select:none;user-select:none}.pace-inactive{display:none}.pace .pace-progress{background:#3273dc;position:fixed;z-index:2000;top:0;right:100%;width:100%;height:2px}</style><script src="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/pace.min.js"></script><!--!--><!--!--><!-- hexo injector head_end start --><script>
+  (function () {
+      function switchTab() {
+          if (!location.hash) {
+            return;
+          }
+
+          const id = '#' + CSS.escape(location.hash.substring(1));
+          const $tabMenu = document.querySelector(`.tabs a[href="${id}"]`);
+          if (!$tabMenu) {
+            return;
+          }
+
+          const $tabMenuContainer = $tabMenu.parentElement.parentElement;
+          Array.from($tabMenuContainer.children).forEach($menu => $menu.classList.remove('is-active'));
+          Array.from($tabMenuContainer.querySelectorAll('a'))
+              .map($menu => document.getElementById($menu.getAttribute("href").substring(1)))
+              .forEach($content => $content.classList.add('is-hidden'));
+
+          if ($tabMenu) {
+              $tabMenu.parentElement.classList.add('is-active');
+          }
+          const $activeTab = document.querySelector(id);
+          if ($activeTab) {
+              $activeTab.classList.remove('is-hidden');
+          }
+      }
+      switchTab();
+      window.addEventListener('hashchange', switchTab, false);
+  })();
+  </script><!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.2.0"></head><body class="is-2-column"><nav class="navbar navbar-main"><div class="container navbar-container"><div class="navbar-brand justify-content-center"><a class="navbar-item navbar-logo" href="/">Zac&#039;s Blog</a></div><div class="navbar-menu"><div class="navbar-start"><a class="navbar-item" href="/">Home</a><a class="navbar-item" href="/archives">Archives</a><a class="navbar-item" href="/categories">Categories</a><a class="navbar-item" href="/tags">Tags</a><a class="navbar-item" href="/about">About</a></div><div class="navbar-end"><a class="navbar-item" target="_blank" rel="noopener" title="Download on GitHub" href="https://github.com/adrianJW421"><i class="fab fa-github"></i></a><a class="navbar-item is-hidden-tablet catalogue" title="目录" href="javascript:;"><i class="fas fa-list-ul"></i></a><a class="navbar-item search" title="搜索" href="javascript:;"><i class="fas fa-search"></i></a></div></div></div></nav><section class="section"><div class="container"><div class="columns"><div class="column order-2 column-main is-8-tablet is-8-desktop is-8-widescreen"><div class="card"><article class="card-content article" role="article"><div class="article-meta is-size-7 is-uppercase level is-mobile"><div class="level-left"><span class="level-item"><time dateTime="2024-06-11T08:05:29.112Z" title="6/11/2024, 4:05:29 PM">2024-06-11</time>发表</span><span class="level-item"><time dateTime="2024-06-11T08:09:47.060Z" title="6/11/2024, 4:09:47 PM">2024-06-11</time>更新</span><span class="level-item"><a class="link-muted" href="/categories/%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/">论文阅读</a><span> / </span><a class="link-muted" href="/categories/%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/LLMAgent/">LLMAgent</a></span><span class="level-item">1 小时读完 (大约8100个字)</span></div></div><h1 class="title is-3 is-size-4-mobile">Buffer of Thoughts - Thought-Augmented Reasoning with Large Language Models</h1><div class="content"><p>摘要:  本文介绍了Buffer of Thoughts（BoT），这是一种新颖且多功能的思想增强推理方法，用于提高大型语言模型（LLMs）的准确性、效率和鲁棒性。具体来说，我们提出了meta-buffer，用于存储一系列从不同任务的问题解决过程中提取的有用高级思想，即thought-template。然后，对于每个问题，我们检索相关的thought-template，并自适应地用具体的推理结构实例化它，以进行高效推理。 为了保证可扩展性和稳定性，我们进一步提出了buffer-manager，用于动态更新meta-buffer，从而随着更多任务的解决，增强meta-buffer的容量。 我们在10个具有挑战性的推理密集任务上进行了广泛的实验，取得了显著的性能提升：在24点游戏中提高了11%，在几何图形中提高了20%，在一步将军中提高了51%。进一步的分析表明，我们的BoT具有卓越的泛化能力和模型鲁棒性，而其成本仅为多次查询提示方法（例如，tree&#x2F;graph of thoughts）的12%。 <mark>值得注意的是，我们发现我们的Llama3-8B + BoT有可能超过Llama3-70B模型。</mark></p>
+<span id="more"></span>
+
+<style>
+    .blue-box {
+        border: 2px solid blue; /* 设置边框为蓝色 */
+        padding: 5px; /* 设置内边距 */
+        background-color: lightblue; /* 设置背景颜色为浅蓝色 */
+        color: black; /* 设置文本颜色为黑色 */
+        width: 600px; /* 设置方框的宽度 */
+        margin: 5px; /* 设置外边距 */
+    }
+</style>
+
+<br>
+
+<p><span id="jumpHere"> 〓 Table of Contents 〓 </p>
+<br>
+
+<ul>
+<li><a href="#1-introduction">1 Introduction</a></li>
+<li><a href="#2-related-work">2 Related Work</a><ul>
+<li><a href="#2-1%E6%A3%80%E7%B4%A2%E5%A2%9E%E5%BC%BA%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B">2.1 检索增强语言模型</a></li>
+<li><a href="#2-2%E5%9F%BA%E4%BA%8E%E6%8F%90%E7%A4%BA%E7%9A%84%E5%A4%A7%E5%9E%8B%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B%E6%8E%A8%E7%90%86">2.2 基于提示的大型语言模型推理</a></li>
+<li><a href="#2-3%E7%B1%BB%E6%AF%94%E6%8E%A8%E7%90%86">2.3 类比推理</a></li>
+</ul>
+</li>
+<li><a href="#3-buffer-of-thoughts">3 Buffer of Thoughts</a><ul>
+<li><a href="#3-1-problem-distiller">3.1  Problem Distiller</a></li>
+<li><a href="#3-2-thought-augmented-reasoning-with-meta-buffer">3.2 Thought-Augmented Reasoning with Meta Buffer</a><ul>
+<li><a href="#3-2-1%E5%8A%A8%E6%9C%BA">3.2.1 动机</a></li>
+<li><a href="#3-2-2%E6%80%9D%E6%83%B3%E6%A8%A1%E6%9D%BF">3.2.2 思想模板</a></li>
+<li><a href="#3-2-3%E6%A8%A1%E6%9D%BF%E6%A3%80%E7%B4%A2">3.2.3 模板检索</a></li>
+<li><a href="#3-2-4%E5%AE%9E%E4%BE%8B%E5%8C%96%E6%8E%A8%E7%90%86">3.2.4 实例化推理</a></li>
+</ul>
+</li>
+<li><a href="#3-3-buffer-manager">3.3 Buffer Manager</a><ul>
+<li><a href="#3-3-1%E6%A8%A1%E6%9D%BF%E6%8F%90%E7%82%BC">3.3.1 模板提炼</a></li>
+<li><a href="#3-3-2-meta-buffer%E7%9A%84%E5%8A%A8%E6%80%81%E6%9B%B4%E6%96%B0">3.3.2 Meta-Buffer的动态更新</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#4-experiments">4 Experiments</a><ul>
+<li><a href="#4-1%E6%95%B0%E6%8D%AE%E9%9B%86%E5%92%8C%E4%BB%BB%E5%8A%A1">4.1 数据集和任务</a></li>
+<li><a href="#4-2%E5%AE%9E%E7%8E%B0%E5%92%8C%E5%9F%BA%E7%BA%BF">4.2 实现和基线</a></li>
+<li><a href="#4-3-bot-achieves-better-accuracy-efficiency-and-robustness">4.3 BoT Achieves Better Accuracy, Efficiency and Robustness</a><ul>
+<li><a href="#4-3-1%E6%8E%A8%E7%90%86%E5%87%86%E7%A1%AE%E6%80%A7">4.3.1 推理准确性</a></li>
+<li><a href="#4-3-2%E6%8E%A8%E7%90%86%E6%95%88%E7%8E%87">4.3.2 推理效率</a></li>
+<li><a href="#4-3-3%E6%8E%A8%E7%90%86%E9%B2%81%E6%A3%92%E6%80%A7">4.3.3 推理鲁棒性</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#5-model-analysis">5 Model Analysis</a><ul>
+<li><a href="#5-1-thought-templates%E7%9A%84%E5%88%86%E5%B8%83%E5%88%86%E6%9E%90">5.1 Thought-Templates的分布分析</a></li>
+<li><a href="#5-2%E6%97%B6%E9%97%B4%E6%88%90%E6%9C%AC%E7%9A%84%E5%88%86%E5%B8%83%E5%88%86%E6%9E%90">5.2时间成本的分布分析</a></li>
+<li><a href="#5-3%E6%A8%A1%E5%9E%8B%E5%A4%A7%E5%B0%8F%E4%B8%8E%E6%80%A7%E8%83%BD%E7%9A%84%E6%9B%B4%E5%A5%BD%E6%9D%83%E8%A1%A1">5.3 模型大小与性能的更好权衡</a></li>
+</ul>
+</li>
+<li><a href="#6-ablation-study">6 Ablation Study</a><ul>
+<li><a href="#6-2-problem-distiller%E7%9A%84%E5%BD%B1%E5%93%8D">6.2 Problem-Distiller的影响</a></li>
+<li><a href="#6-3-meta-buffer%E7%9A%84%E5%BD%B1%E5%93%8D">6.3 Meta-Buffer的影响</a></li>
+<li><a href="#6-4-buffer-manager%E7%9A%84%E5%BD%B1%E5%93%8D">6.4 Buffer-Manager的影响</a></li>
+</ul>
+</li>
+<li><a href="#7-discussion">7 Discussion</a></li>
+<li><a href="#8-conclusion">8 Conclusion</a></li>
+</ul>
+<p><br><br><br></p>
+<h2 id="1-Introduction"><a href="#1-Introduction" class="headerlink" title="1 Introduction"></a>1 Introduction</h2><p><a href="#jumpHere">〓 ReTURN 〓</a></p>
+<p>一系列大型语言模型（LLMs）如GPT-4、PaLM和LLaMA在各种推理任务中展现了出色的表现。除了通过扩大模型规模来提高推理性能外，还有更多有效的提示方法进一步增强了LLMs的功能和性能。</p>
+<p>我们将这些方法分为两类：</p>
+<p>（i）单次查询推理：这些方法通常集中于提示工程，其推理过程可以在单次查询内完成。例如，CoT方法在输入查询后附加“Let’s think step by step”来生成推理理由，以提高推理准确性；以及少量示例提示（Few-shot Prompting），它提供与任务相关的示例以辅助答案生成。</p>
+<p>（ii）多次查询推理：这些方法通过利用多次LLM查询来引导不同的合理推理路径，从而将复杂问题分解为一系列较简单的子问题，如Least-to-Most、ToT和GoT。</p>
+<p>然而，这两类方法都面临一些限制：</p>
+<p>（1）单次查询推理通常需要预先假设或相关的推理过程示例，这使得手动逐任务设计变得不切实际，因此缺乏普适性和泛化性；</p>
+<p>（2）由于推理路径的递归扩展，多次查询推理在为每个特定任务寻找独特的内在结构时通常需要大量计算；</p>
+<p>（3）单次查询和多次查询推理过程都受限于其设计的示例和推理结构，未能从已完成的任务中提取通用的高级指导思想，这些思想对于解决类似问题时提高效率和准确性非常有用。</p>
+<p>为了解决这些限制，我们提出了Buffer of Thoughts（BoT），这是一种新颖且多功能的思想增强推理框架，旨在提高LLMs在各种任务中的推理准确性、效率和鲁棒性。具体来说，我们设计了meta-buffer，这是一个轻量级库，包含一系列从不同问题解决过程中提取的通用高级思想（thought-template），这些思想可以跨任务共享。然后，对于每个问题，我们检索相关的思想模板并用具体的推理结构实例化它，以实现高效的思想增强推理。</p>
+<p>为了保证BoT的可扩展性和稳定性，我们进一步提出了buffer-manager，用于动态更新meta-buffer，随着更多任务的解决，meta-buffer的容量得到有效增强。</p>
+<p>我们的方法有三个关键优势：</p>
+<p>（i）准确性提升：通过共享的思想模板，我们可以自适应地实例化高级思想来处理不同任务，消除了从头构建推理结构的需求，从而提高了推理准确性；</p>
+<p>（ii）推理效率：我们的思想增强推理可以直接利用有用的历史推理结构进行推理，无需复杂的多次查询过程，从而提高了推理效率；</p>
+<p>（iii）模型鲁棒性：从思想检索到思想实例化的过程就像人类的思维过程，使得LLMs能够以一致的方式处理类似问题，从而显著增强我们方法的模型鲁棒性。</p>
+<p>我们的实验证明，Buffer of Thoughts在各种具有挑战性的推理密集任务中显著提高了精度、效率和鲁棒性。以下是我们工作的总结：</p>
+<ol>
+<li><p>我们提出了一种新颖的思想增强推理框架Buffer of Thoughts（BoT），以提高基于LLM的推理的准确性、效率和鲁棒性；</p>
+</li>
+<li><p>我们提出了meta-buffer，用于存储从不同问题中提取的有用高级思想，并自适应地实例化每个思想模板以解决具体任务；</p>
+</li>
+<li><p>我们设计了buffer-manager，用于从各种解决方案中提取思想模板，并随着更多任务的解决不断提高meta-buffer的容量；</p>
+</li>
+<li><p>我们在10个具有挑战性的推理密集任务上进行了广泛的实验。我们的BoT在多个任务上取得了显著的性能提升：在24点游戏中提高了11%，在几何图形中提高了20%，在一步将军中提高了51%，而其成本仅为多次查询提示方法的12%。</p>
+</li>
+</ol>
+<p><img src="https://github.com/adrianJW421/MyPicBed/raw/main/papers/Buffer_of_Thoughts/17178464835875.jpg"></p>
+<p><br><br><br></p>
+<h2 id="2-Related-Work"><a href="#2-Related-Work" class="headerlink" title="2 Related Work"></a>2 Related Work</h2><p><a href="#jumpHere">〓 ReTURN 〓</a></p>
+<h3 id="2-1-检索增强语言模型"><a href="#2-1-检索增强语言模型" class="headerlink" title="2.1 检索增强语言模型"></a>2.1 检索增强语言模型</h3><p>检索增强型（大型）语言模型作为一种解决幻觉现象并提升语言模型输出质量的方案被提出。当面对一个输入问题时，检索增强型LLM首先查询一个包含数十亿级别tokens的外部数据库，以检索出一个子文本语料库来帮助生成最终答案。值得注意的是，检索增强型LLM在使用更少参数的情况下，实现了比传统LLM更优越的问答性能，并已在多种下游任务中得到了应用，包括多模态生成和生物医学应用。</p>
+<p>在本文中，我们构建了一种新型的检索数据库，称为meta-buffer，它包含一系列高级思想而非具体实例，旨在普遍解决基于LLM的推理任务。</p>
+<p><br><br></p>
+<h3 id="2-2-基于提示的大型语言模型推理"><a href="#2-2-基于提示的大型语言模型推理" class="headerlink" title="2.2 基于提示的大型语言模型推理"></a>2.2 基于提示的大型语言模型推理</h3><p>提示技术显著增强了LLM的算术和常识推理能力。Chain-of-Thought（CoT）提示及其变体（如Least-to-Most、Decomposed Prompting和Auto-CoT）促使LLM将复杂问题分解为更简单的子任务，并系统地解决它们后总结出最终答案。许多研究表明，这些提示方法在广泛的任务和基准测试中表现出了有效性。</p>
+<p>诸如Tree-of-Thought和Graph-of-Thought的创新进一步推动了该领域的发展，通过探索动态、非线性的推理路径来扩展LLM的启发式能力。然而，它们面临着资源需求增加和时间复杂度更高的问题，依赖于手动提示设计，并且通常针对特定任务类型。最近的meta提示方法采用相同的任务不可知形式的提示用于各种任务，并递归地引导单个LLM自适应地处理不同的输入查询。然而，这种长meta提示可能需要相当大的上下文窗口，并且这些方法未能利用历史上的有用指导思想来解决潜在的类似任务。</p>
+<p><br><br></p>
+<h3 id="2-3-类比推理"><a href="#2-3-类比推理" class="headerlink" title="2.3 类比推理"></a>2.3 类比推理</h3><p>类比推理是一种对自然语言推理非常有用的技术。最近的研究表明，LLM可以像人类一样进行类比推理。例如，Analogical Prompting和Thought Propagation提示LLM自生成一组类比问题，然后利用这些类比问题的结果来为输入问题生成解决方案。然而，对自探索问题的具体解决方案可能引入额外的噪音并导致错误积累。最近的Thought-Retriever利用解决过去用户问题时生成的中间思想来处理类似查询，但它仅关注文本理解&#x2F;生成，而不是一般的推理问题。因此，仍然缺乏一种更高级和通用的类比方法来处理LLM复杂推理。</p>
+<p><br><br><br></p>
+<h2 id="3-Buffer-of-Thoughts"><a href="#3-Buffer-of-Thoughts" class="headerlink" title="3 Buffer of Thoughts"></a>3 Buffer of Thoughts</h2><p><a href="#jumpHere">〓 ReTURN 〓</a></p>
+<p><strong>Overview of Buffer of Thoughts</strong>. 在本节中，我们详细介绍了我们的Buffer of Thoughts，并在图2中展示了我们的核心思想增强推理过程。 对于特定任务，我们利用problem-distiller（第3.1节）提取关键的任务特定信息以及相关约束。基于提取的信息，我们在meta-buffer（第3.2节）中搜索，meta-buffer包含一系列高级思想（thought-template），并检索出与该任务最相关的thought-template。 随后，我们用更具任务特定的推理结构实例化检索到的thought-template并进行推理过程。最后，我们使用buffer-manager（第3.3节）总结整个问题解决过程，并提炼高级思想以增加meta-buffer的容量。</p>
+<p><br><br></p>
+<h3 id="3-1-Problem-Distiller"><a href="#3-1-Problem-Distiller" class="headerlink" title="3.1  Problem Distiller"></a>3.1  Problem Distiller</h3><p>大多数复杂任务包含隐含约束、复杂的对象关系以及其上下文中的复杂变量和参数。因此，在推理阶段，LLM需要克服三个主要挑战：提取重要信息、识别潜在约束以及执行准确推理。这些挑战会对单一的LLM构成显著负担。因此，我们将任务信息的提取和理解阶段与最终推理阶段分开，通过在推理过程中添加一个问题提炼器来实现。</p>
+<p>具体而言，我们设计了一个meta prompt $\phi$，首先提炼并形式化任务信息。提炼后的任务信息可以表示为：</p>
+<p>$$<br>x_d &#x3D; LLM(\phi(x)),<br>$$</p>
+<p>其中$x$是任务陈述。由于篇幅限制，我们将问题提炼器的详细meta prompt放在附录A.2中。</p>
+<p><strong>问题凝练与翻译</strong></p>
+<p>我们使用问题提炼器从输入任务中提取关键元素，重点关注：（1）问题解决所需的基本参数和变量；（2）输入任务的目标及其相应的约束。然后，我们将这些提炼的信息重新组织成一个清晰、易于理解的格式，以便后续推理阶段使用。</p>
+<p>接着，我们将具体问题翻译成高级概念和结构。这个翻译过程将复杂的现实问题（如复杂的数学应用场景）分解为更简单的多步计算，从而便于后续高级思想的检索。</p>
+<p><br><br></p>
+<h3 id="3-2-Thought-Augmented-Reasoning-with-Meta-Buffer"><a href="#3-2-Thought-Augmented-Reasoning-with-Meta-Buffer" class="headerlink" title="3.2 Thought-Augmented Reasoning with Meta Buffer"></a>3.2 Thought-Augmented Reasoning with Meta Buffer</h3><h4 id="3-2-1-动机"><a href="#3-2-1-动机" class="headerlink" title="3.2.1 动机"></a>3.2.1 动机</h4><p>人类在解决问题时，通常会总结并归纳出高级指导原则，然后将其应用于相关问题。受此启发，我们提出了meta-buffer，这是一个包含一系列高级思想（thought-template）的轻量级库，用于解决各种类型的问题。与传统方法不同，我们的高级thought-templates可以在解决不同问题时自适应地实例化，从而增强LLMs的精度和灵活性。</p>
+<p><br><br></p>
+<h4 id="3-2-2-思想模板"><a href="#3-2-2-思想模板" class="headerlink" title="3.2.2 思想模板"></a>3.2.2 思想模板</h4><p>作为一种高级指导原则，我们的thought-template存储在meta-buffer中，并由buffer-manager从各种问题解决过程中获取。获取thought-templates的详细信息将在第3.3节介绍。由于我们的BoT旨在为各种任务提供通用的推理方法，我们相应地将thought-templates分为六类：文本理解、创意语言生成、常识推理、数学推理、代码编程和应用调度。我们在附录A.1中提供了一些示例thought-templates。这种thought-templates的分类可以方便模板检索，以找到最适合解决不同问题的方法。这里我们将thought-template、模板描述及其对应的类别表示为($T_i, D_{T_i}, C_k$)，其中$i$表示meta-template的索引，$k \in \mathbb{Z}^{+}$且$1 \leq k \leq 6$，表示$C_k$属于六个类别之一，而$D_{T_i}$是thought-template的描述。</p>
+<p><br><br></p>
+<h4 id="3-2-3-模板检索"><a href="#3-2-3-模板检索" class="headerlink" title="3.2.3 模板检索"></a>3.2.3 模板检索</h4><p>对于每个任务，我们的BoT通过计算描述$D_{T_i}$与提炼问题$x_d$之间的嵌入相似性，检索出一个与提炼问题$x_d$高度相似的thought-template $T_i$。检索过程可以表述为：</p>
+<p>$$<br>j&#x3D;\operatorname{argmax}<em>i\left(\operatorname{Sim}\left(f\left(x_d\right),\left{f\left(D</em>{T_i}\right)\right}<em>{i&#x3D;1}^N\right)\right), \quad \text { where } \quad \operatorname{Sim}\left(f\left(x_d\right),\left{f\left(D</em>{T_i}\right)\right}_{i&#x3D;0}^n\right)&gt;&#x3D;\delta,<br>$$</p>
+<p>其中$N$是meta-buffer的大小，$f(\cdot)$是一个常规的文本嵌入模型，$T_j$表示检索到的thought-template。我们设置一个阈值$\delta$（推荐范围为0.5至0.7）来确定当前任务是否为新任务。因此，如果$\operatorname{Sim}\left(f\left(x_d\right),\left{f\left(D_{T_i}\right)\right}_{i&#x3D;0}^n\right)&lt;\delta$，我们将任务$x$识别为新任务。</p>
+<p><br><br></p>
+<h4 id="3-2-4-实例化推理"><a href="#3-2-4-实例化推理" class="headerlink" title="3.2.4 实例化推理"></a>3.2.4 实例化推理</h4><p>对于每个具体任务，我们根据当前任务是否为新任务讨论两种情况：第一种情况是我们成功为任务检索到一个thought-template $T_j$。在这种情况下，如图2所示，我们的思想增强推理将通过我们设计的实例化提示（见附录A.3）自适应地实例化为适当的推理结构。例如，在一步将军问题中，我们实例化更新棋盘状态的模板，以逐步解决问题。因此，我们使用提炼信息$x_d$和检索到的模板$T_j$对任务$x$进行实例化推理，并生成其解决方案$S_x$：</p>
+<p>$$<br>S_x&#x3D;L L M_{\text {instantiation }}\left(x_d, T_j\right),<br>$$</p>
+<p>其中$L L M_{\text {instantiation }}$表示带有LLM的实例化推理器。</p>
+<p>第二种情况是任务被识别为新任务。为了实现适当的实例化推理，我们准备了三个通用的粗粒度thought-templates供使用。基于提炼的任务信息$x_d$，我们的BoT将自动为推理过程分配一个合适的thought-template。详细的预定义thought-templates包含在附录A.3中。</p>
+<p><br><br></p>
+<h3 id="3-3-Buffer-Manager"><a href="#3-3-Buffer-Manager" class="headerlink" title="3.3 Buffer Manager"></a>3.3 Buffer Manager</h3><p>我们提出了buffer-manager，用于总结从每个问题解决过程中获得的高级指导原则和思想。它能够将每个具体解决方案推广到更多问题中，并以thought-templates的形式将关键提炼知识存储在meta-buffer中。与为每个问题临时生成示例或指令的方法相比，我们的buffer-manager可以确保基于LLM的推理在准确性、效率和鲁棒性方面的持久进步。</p>
+<p><br><br></p>
+<h4 id="3-3-1-模板提炼"><a href="#3-3-1-模板提炼" class="headerlink" title="3.3.1 模板提炼"></a>3.3.1 模板提炼</h4><p>为了提取一个通用的thought-template，我们提出了三步法：（1）核心任务总结：识别并描述问题的基本类型和核心挑战；（2）解决步骤描述：总结解决问题的一般步骤；（3）通用回答模板：基于上述分析，提出一个可以广泛应用于类似问题的解决模板或方法。此外，为了增强模板提炼的泛化能力和稳定性，我们精心设计了两种类型的上下文示例，分别用于生成task内和cross-task的thought-template。Cross-task示例意味着我们选择从一个任务中提炼的模板来解决其他任务的问题，例如用与代码相关的thought-template解决数学问题。从输入任务$x$中提炼的新模板可以表示为：</p>
+<p>$$<br>T_{\text {new }}&#x3D;LLM_{\text {distill }}\left(x_d, S_x\right),<br>$$</p>
+<p>其中$LLM_{\text {distill }}$是基于LLM的模板提炼器，其初始化提示如下图所示。</p>
+<p><br><br></p>
+<h4 id="3-3-2-Meta-Buffer的动态更新"><a href="#3-3-2-Meta-Buffer的动态更新" class="headerlink" title="3.3.2 Meta-Buffer的动态更新"></a>3.3.2 Meta-Buffer的动态更新</h4><p>在模板提炼之后，我们需要考虑是否将提炼的模板更新到meta-buffer中。如果我们初始化一个空的meta-buffer或遇到一个没有适当thought-template的问题，提炼的thought-templates将直接存储在meta-buffer中。如果我们使用检索到的thought-template解决问题，在某个thought-template的实例化过程中可能会产生新的见解。因此，为了避免meta-buffer的冗余，同时保持新生成的有用思想，我们将计算$D_{T_{\text {new }}}$和$\left{D_{T_i}\right}_{i&#x3D;0}^n$的嵌入向量之间的相似性，并按以下规则更新meta-buffer：</p>
+<p>$$<br>\operatorname{Max}\left(\operatorname{Sim}\left(f\left(D_{T_{\text {new }}}\right),\left{f\left(D_{T_i}\right)\right}_{i&#x3D;0}^n\right)\right)&lt;\delta.<br>$$</p>
+<p>否则，这意味着meta-buffer已经具备解决该任务所需的知识，无需进行更新。我们的动态更新策略有效地减少了模板检索的计算负担，同时确保了meta-buffer的轻量化特性。我们在第6节进一步进行消融研究以分析这一策略。</p>
+<p><img src="https://github.com/adrianJW421/MyPicBed/raw/main/papers/Buffer_of_Thoughts/17178514287128.jpg"></p>
+<p><br><br><br></p>
+<h2 id="4-Experiments"><a href="#4-Experiments" class="headerlink" title="4 Experiments"></a>4 Experiments</h2><p><a href="#jumpHere">〓 ReTURN 〓</a></p>
+<p><img src="https://github.com/adrianJW421/MyPicBed/raw/main/papers/Buffer_of_Thoughts/17178516519266.jpg"></p>
+<h3 id="4-1-数据集和任务"><a href="#4-1-数据集和任务" class="headerlink" title="4.1 数据集和任务"></a>4.1 数据集和任务</h3><p>为了评估我们提出的Buffer of Thoughts的有效性并与以往方法进行比较，我们考虑了一组多样化的任务和数据集，这些任务需要不同程度的数学和算法推理、领域特定知识和文学创作能力：</p>
+<p>(a) <strong>Game of 24</strong>：从ToT中获取，目标是使用四个给定数字各一次形成等于24的算术表达式；</p>
+<p>(b) <strong>三个BIG-Bench Hard (BBH)任务</strong>：几何图形、多步算术二和单词排序；</p>
+<p>(c) <strong>三个直接从BIG-Bench套件中获取的推理任务</strong>：一步将军、企鹅任务（根据给定表格和额外的自然语言信息回答关于企鹅属性的问题），以及日期理解任务（从自然语言描述中推断日期，对日期进行算术运算，并利用全球知识如二月份的天数）；</p>
+<p>(d) **Python编程谜题(P3)**：一组用Python编写的具有不同难度级别的挑战性编程谜题；</p>
+<p>(e) **多语种小学数学(MGSM)**：GSM8K数据集的多语种版本，其中包括翻译成包括孟加拉语、日语和斯瓦希里语在内的十种类型多样的语言的示例子集；</p>
+<p>(f) <strong>莎士比亚十四行诗写作</strong>：来自meta-prompting的一个新颖任务，目标是按照严格的押韵方案”ABAB CDCD EFEF GG”写一首十四行诗，并逐字包含三个提供的单词。</p>
+<p><br><br></p>
+<h3 id="4-2-实现和基线"><a href="#4-2-实现和基线" class="headerlink" title="4.2 实现和基线"></a>4.2 实现和基线</h3><p>为了与以前的方法进行公平比较，我们使用GPT-4作为BoT的基础模型，包括主要实验和消融研究（在第6节）。我们还在NVIDIA A100-PCIE-40GB GPU上使用了Llama3-8B和Llama3-70B进行分析。我们将Buffer of Thoughts与以下提示方法进行比较：</p>
+<ol>
+<li><p><strong>标准提示</strong>：这是我们的最基本基线，LLM直接从输入查询生成响应，不包含任何特定的指导输入输出示例或任务描述之外的额外指令。</p>
+</li>
+<li><p><strong>单次查询方法</strong>：包括Zero-shot CoT和PAL，它们使用LLM分析自然语言问题并生成中间推理步骤。我们还包括Expert Prompting，它创建了一个根据输入查询的特定上下文量身定制的专家身份，并将该专家简介整合到输入中，以生成信息丰富的响应。</p>
+</li>
+<li><p><strong>多次查询方法</strong>：包括ToT和GoT，它们使LLM通过考虑多种推理路径和自我评估选择来做出深思熟虑的决策，并确定下一步行动。这些方法还允许在必要时前瞻或回溯以做出全局决策。此外，我们还包括Meta Prompting，它采用了一种有效的支架技术来增强LLM的功能。</p>
+</li>
+</ol>
+<p><br><br></p>
+<h3 id="4-3-BoT-Achieves-Better-Accuracy-Efficiency-and-Robustness"><a href="#4-3-BoT-Achieves-Better-Accuracy-Efficiency-and-Robustness" class="headerlink" title="4.3 BoT Achieves Better Accuracy, Efficiency and Robustness"></a>4.3 BoT Achieves Better Accuracy, Efficiency and Robustness</h3><h4 id="4-3-1-推理准确性"><a href="#4-3-1-推理准确性" class="headerlink" title="4.3.1 推理准确性"></a>4.3.1 推理准确性</h4><p>如表1所示，我们的BoT在多个具有挑战性的基准测试中始终优于所有先前的提示方法，特别是在复杂推理任务如Game of 24和Checkmate-in-One中表现尤为突出。以GPT-4为基线，我们的方法在Game of 24中取得了惊人的79.4%的准确性提升，而相比于在此任务上表现良好的ToT，我们也实现了8.4%的准确性提升。此外，相较于最近的Meta-prompting方法，我们在Game of 24上提升了23%，在Geometric Shapes上提升了20%，在Checkmate-in-One上提升了51%。现有方法需要复杂的、迭代的和启发式的搜索策略来逐一解决这些问题。相比之下，我们的BoT利用了thought-templates中的历史见解和信息性指导，并进一步自适应地实例化出更优的推理结构，以解决这些复杂问题。</p>
+<h4 id="4-3-2-推理效率"><a href="#4-3-2-推理效率" class="headerlink" title="4.3.2 推理效率"></a>4.3.2 推理效率</h4><p>除了在准确性上取得显著提升外，作为一种多次查询方法，我们的BoT在各种任务中实现了与单次查询方法相当的推理时间，同时明显少于传统的多次查询方法如ToT。如图3所示，在Game of 24中，单次查询和多次查询方法都需要迭代和启发式搜索来确定可行的解决方案，这一过程特别耗时且效率低下，尤其是多次查询方法，它涉及多次查询搜索和回溯阶段。相比之下，我们的BoT直接以代码格式检索到一个thought-template，从而实例化一个程序来遍历数字和符号的组合，消除了从头构建推理结构的需要。这使得在调用problem-distiller后，只需一次查询就能解决问题，显著减少了复杂推理所需的时间。值得注意的是，我们的BoT平均仅需多次查询方法（如tree of thoughts和meta-prompting）成本的12%。</p>
+<h4 id="4-3-3-推理鲁棒性"><a href="#4-3-3-推理鲁棒性" class="headerlink" title="4.3.3 推理鲁棒性"></a>4.3.3 推理鲁棒性</h4><p>为了更好地评估我们的BoT，我们设计了一种新的评估指标：成功率，用于评估推理鲁棒性。我们从各种基准中随机抽取1000个示例作为测试子集，并在该子集上评估不同方法的表现。</p>
+<p>如图4所示，我们重复这一评估过程10次，并取平均准确率作为各基准上不同方法的成功率。与其他方法相比，我们的BoT在各种任务中始终保持更高的成功率，平均成功率超过第二好的方法10%。我们将出色的鲁棒性归因于我们在不同任务推理过程中提炼的thought-templates的强大泛化能力。通过提供来自适当thought-templates的高级思想，我们的方法在不同任务中的稳定性得到了极大增强。</p>
+<p><img src="https://github.com/adrianJW421/MyPicBed/raw/main/papers/Buffer_of_Thoughts/17178517890749.jpg"></p>
+<p><img src="https://github.com/adrianJW421/MyPicBed/raw/main/papers/Buffer_of_Thoughts/17178517987219.jpg"></p>
+<p><br><br><br></p>
+<h2 id="5-Model-Analysis"><a href="#5-Model-Analysis" class="headerlink" title="5 Model Analysis"></a>5 Model Analysis</h2><p><a href="#jumpHere">〓 ReTURN 〓</a></p>
+<h3 id="5-1-Thought-Templates的分布分析"><a href="#5-1-Thought-Templates的分布分析" class="headerlink" title="5.1 Thought-Templates的分布分析"></a>5.1 Thought-Templates的分布分析</h3><p>如图5左图所示，我们选择了六个不同的基准，每个基准抽取100个不同任务。从零开始更新meta-buffer，在完成所有抽取的任务后，我们展示了派生出的thought-templates数量。可以观察到，我们的BoT在包含更多多样化场景的MGSM任务中生成了更多的thought-templates。在相对简单的任务中，如Checkmate-in-One和Penguins，BoT产生了更多针对这些特定问题的固定thought-templates。模板的分布表明，我们的BoT能够有效地为不同基准发现适当的thought-templates。</p>
+<p><br><br></p>
+<h3 id="5-2时间成本的分布分析"><a href="#5-2时间成本的分布分析" class="headerlink" title="5.2时间成本的分布分析"></a>5.2时间成本的分布分析</h3><p>如图5所示，我们测量了BoT推理框架中各组件在不同任务上的平均时间成本。提炼任务信息和模板检索所需时间相对较短，而实例化推理所需时间较长。总体而言，考虑到不同组件的复杂性，我们的BoT实现了相对平衡的时间成本分布，展示了BoT框架的效率。</p>
+<p><br><br></p>
+<h3 id="5-3-模型大小与性能的更好权衡"><a href="#5-3-模型大小与性能的更好权衡" class="headerlink" title="5.3 模型大小与性能的更好权衡"></a>5.3 模型大小与性能的更好权衡</h3><p>如图6所示，在Game of 24、单词列表排序和Checkmate-in-One任务中，Llama3-8B和Llama-70B模型可能表现不佳。然而，配备我们的BoT后，这两种模型的准确性显著提升。值得注意的是，BoT+Llama3-8B有可能超越单独的Llama3-70B模型。我们的BoT使得较小的模型能够展现出接近甚至超越较大模型的能力，显著缩小了它们在推理能力上的差距。此外，它极大地减少了大型语言模型在处理复杂问题时所需的推理成本。</p>
+<p><img src="https://github.com/adrianJW421/MyPicBed/raw/main/papers/Buffer_of_Thoughts/17178518817743.jpg"></p>
+<p><img src="https://github.com/adrianJW421/MyPicBed/raw/main/papers/Buffer_of_Thoughts/17178518966614.jpg"></p>
+<p><br><br><br></p>
+<h2 id="6-Ablation-Study"><a href="#6-Ablation-Study" class="headerlink" title="6 Ablation Study"></a>6 Ablation Study</h2><p><a href="#jumpHere">〓 ReTURN 〓</a></p>
+<h3 id="6-2-Problem-Distiller的影响"><a href="#6-2-Problem-Distiller的影响" class="headerlink" title="6.2 Problem-Distiller的影响"></a>6.2 Problem-Distiller的影响</h3><p>如图7所示，当problem-distiller被禁用时，Llama3-70B和GPT-4的准确性均出现一定程度的下降。对于更复杂的问题，如Game of 24和Checkmate-in-One，准确性下降更为显著，而相对简单的问题如单词列表排序和MGSM则表现出较小的下降。这是因为在简单任务中，LLMs更容易提取关键信息，使得problem-distiller的影响不太明显。相反，在复杂问题中提取关键信息和潜在约束更具挑战性，使得problem-distiller的作用更为突出，这解释了图中所展示的差异。</p>
+<p><img src="https://github.com/adrianJW421/MyPicBed/raw/main/papers/Buffer_of_Thoughts/17178519923892.jpg"></p>
+<p><br><br></p>
+<h3 id="6-3-Meta-Buffer的影响"><a href="#6-3-Meta-Buffer的影响" class="headerlink" title="6.3 Meta-Buffer的影响"></a>6.3 Meta-Buffer的影响</h3><p>如图8所示，当meta-buffer被禁用时，Llama3-70B和GPT-4模型在性能上均表现出显著下降，尤其是在需要复杂推理的基准测试中，如Game of 24和Checkmate-in-One。这进一步强调了meta-buffer在解决复杂问题中的优越性。</p>
+<p><img src="https://github.com/adrianJW421/MyPicBed/raw/main/papers/Buffer_of_Thoughts/17178519999870.jpg"></p>
+<p><br><br></p>
+<h3 id="6-4-Buffer-Manager的影响"><a href="#6-4-Buffer-Manager的影响" class="headerlink" title="6.4 Buffer-Manager的影响"></a>6.4 Buffer-Manager的影响</h3><p>在这项消融研究中，我们将整个过程分为四轮。在每一轮中，我们从每个基准中随机抽取50个问题并进行推理。在随后的轮次中，我们继续从每个基准中随机抽取另一个50个问题。</p>
+<p>如图9所示，随着轮次的增加，配备buffer-manager的模型不断扩展meta-buffer，同时利用先前解决问题中获得的thought-templates来帮助解决后续的类似问题。因此，我们可以观察到BoT的准确性在每一轮中稳步提高。相反，没有buffer-manager的模型未能表现出上升趋势。</p>
+<p>此外，我们还测量了推理时间，如图10所示。随着轮次的增加，配备buffer-manager的模型推理效率不断提高。这是因为随着meta-buffer的不断扩展，检索到合适thought-templates的可能性也增加。因此，模型可以避免从头构建推理结构，从而相应地提高推理效率。</p>
+<p><img src="https://github.com/adrianJW421/MyPicBed/raw/main/papers/Buffer_of_Thoughts/17178520093085.jpg"></p>
+<p><img src="https://github.com/adrianJW421/MyPicBed/raw/main/papers/Buffer_of_Thoughts/17178520197769.jpg"></p>
+<p><br><br><br></p>
+<h2 id="7-Discussion"><a href="#7-Discussion" class="headerlink" title="7 Discussion"></a>7 Discussion</h2><p><a href="#jumpHere">〓 ReTURN 〓</a></p>
+<p><strong>局限性与未来方向</strong></p>
+<p>尽管我们的方法在提高准确性、保持推理效率和鲁棒性方面取得了显著进展，但在解决需要人类创造力的问题时，我们的方法提升有限，因为这些问题往往不依赖于特定的thought-template。此外，如果我们的BoT使用较弱的模型初始化meta-buffer，由于较弱模型的推理能力和指令遵循能力有限，派生的thought-templates质量可能会不理想。</p>
+<p>总体而言，我们的BoT带来了以下未来研究方向：</p>
+<ol>
+<li>将外部资源与BoT整合，构建一个类似代理模型的开放域系统。</li>
+<li>使thought-templates的提炼过程可优化，这可能显著提升其在处理更复杂任务时的模板质量。</li>
+</ol>
+<p><br><br><br></p>
+<h2 id="8-Conclusion"><a href="#8-Conclusion" class="headerlink" title="8 Conclusion"></a>8 Conclusion</h2><p><a href="#jumpHere">〓 ReTURN 〓</a></p>
+<p>在这项工作中，我们引入了Buffer of Thoughts，这是一种新颖的缓冲推理框架，利用LLMs来使用先前任务中的预积累经验和方法，并将其作为thought-templates存储在meta-buffer中。我们进一步设计了buffer-manager，以持续改进问题解决过程并动态提炼thought-templates，从而逐步提升LLM的推理能力。我们的BoT在10个具有挑战性的任务中展示了SOTA性能，并为未来的研究和应用提供了有希望的前景。</p>
+</div><div class="article-licensing box"><div class="licensing-title"><p>Buffer of Thoughts - Thought-Augmented Reasoning with Large Language Models</p><p><a href="https://nerozac.com/2024/06/11/Buffer-of-Thoughts/">https://nerozac.com/2024/06/11/Buffer-of-Thoughts/</a></p></div><div class="licensing-meta level is-mobile"><div class="level-left"><div class="level-item is-narrow"><div><h6>作者</h6><p>Jiawei Li</p></div></div><div class="level-item is-narrow"><div><h6>发布于</h6><p>2024-06-11</p></div></div><div class="level-item is-narrow"><div><h6>更新于</h6><p>2024-06-11</p></div></div><div class="level-item is-narrow"><div><h6>许可协议</h6><p><a class="icons" rel="noopener" target="_blank" title="Creative Commons" href="https://creativecommons.org/"><i class="icon fab fa-creative-commons"></i></a><a class="icons" rel="noopener" target="_blank" title="Attribution" href="https://creativecommons.org/licenses/by/4.0/"><i class="icon fab fa-creative-commons-by"></i></a><a class="icons" rel="noopener" target="_blank" title="Noncommercial" href="https://creativecommons.org/licenses/by-nc/4.0/"><i class="icon fab fa-creative-commons-nc"></i></a></p></div></div></div></div></div><div class="article-tags is-size-7 mb-4"><span class="mr-2">#</span><a class="link-muted mr-2" rel="tag" href="/tags/%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/">论文阅读</a><a class="link-muted mr-2" rel="tag" href="/tags/LLMAgent/">LLMAgent</a></div><div class="sharethis-inline-share-buttons"></div><script src="nerozac.com" defer></script></article></div><!--!--><nav class="post-navigation mt-4 level is-mobile"><div class="level-start"><a class="article-nav-prev level level-item link-muted" href="/2024/06/11/NeRF%E5%8E%9F%E8%AE%BA%E6%96%87%E5%8F%8A%E6%95%99%E7%A8%8B/"><i class="level-item fas fa-chevron-left"></i><span class="level-item">NeRF原论文及教程</span></a></div><div class="level-end"><a class="article-nav-next level level-item link-muted" href="/2024/06/06/Instructions-for-PhD-Students/"><span class="level-item">大牛谏言 Instructions for PhD Students</span><i class="level-item fas fa-chevron-right"></i></a></div></nav><!--!--></div><div class="column column-left is-4-tablet is-4-desktop is-4-widescreen  order-1"><div class="card widget" data-type="profile"><div class="card-content"><nav class="level"><div class="level-item has-text-centered flex-shrink-1"><div><figure class="image is-128x128 mx-auto mb-2"><img class="avatar" src="/img/jlijz2.jpg" alt="Jiawei Li"></figure><p class="title is-size-4 is-block" style="line-height:inherit;">Jiawei Li</p><p class="is-size-6 is-block">CSE PhD student at HKUST. Focusing on Large Language Model Agents and 3D databases.</p><p class="is-size-6 is-flex justify-content-center"><i class="fas fa-map-marker-alt mr-1"></i><span>Clear Water Bay, Kowloon, Hong Kong</span></p></div></div></nav><nav class="level is-mobile"><div class="level-item has-text-centered is-marginless"><div><p class="heading">文章</p><a href="/archives"><p class="title">18</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">分类</p><a href="/categories"><p class="title">18</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">标签</p><a href="/tags"><p class="title">25</p></a></div></div></nav><div class="level"><a class="level-item button is-primary is-rounded" href="https://github.com/adrianJW421" target="_blank" rel="noopener">关注我</a></div><div class="level is-mobile is-multiline"><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="Github" href="https://github.com/adrianJW421"><i class="fab fa-github"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="Facebook" href="/null"><i class="fab fa-facebook"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="Twitter" href="/null"><i class="fab fa-twitter"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="Dribbble" href="/null"><i class="fab fa-dribbble"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="RSS" href="/"><i class="fas fa-rss"></i></a></div></div></div><div class="card widget" id="toc" data-type="toc"><div class="card-content"><div class="menu"><h3 class="menu-label">目录</h3><ul class="menu-list"><li><a class="level is-mobile" href="#1-Introduction"><span class="level-left"><span class="level-item">1</span><span class="level-item">1 Introduction</span></span></a></li><li><a class="level is-mobile" href="#2-Related-Work"><span class="level-left"><span class="level-item">2</span><span class="level-item">2 Related Work</span></span></a><ul class="menu-list"><li><a class="level is-mobile" href="#2-1-检索增强语言模型"><span class="level-left"><span class="level-item">2.1</span><span class="level-item">2.1 检索增强语言模型</span></span></a></li><li><a class="level is-mobile" href="#2-2-基于提示的大型语言模型推理"><span class="level-left"><span class="level-item">2.2</span><span class="level-item">2.2 基于提示的大型语言模型推理</span></span></a></li><li><a class="level is-mobile" href="#2-3-类比推理"><span class="level-left"><span class="level-item">2.3</span><span class="level-item">2.3 类比推理</span></span></a></li></ul></li><li><a class="level is-mobile" href="#3-Buffer-of-Thoughts"><span class="level-left"><span class="level-item">3</span><span class="level-item">3 Buffer of Thoughts</span></span></a><ul class="menu-list"><li><a class="level is-mobile" href="#3-1-Problem-Distiller"><span class="level-left"><span class="level-item">3.1</span><span class="level-item">3.1  Problem Distiller</span></span></a></li><li><a class="level is-mobile" href="#3-2-Thought-Augmented-Reasoning-with-Meta-Buffer"><span class="level-left"><span class="level-item">3.2</span><span class="level-item">3.2 Thought-Augmented Reasoning with Meta Buffer</span></span></a><ul class="menu-list"><li><a class="level is-mobile" href="#3-2-1-动机"><span class="level-left"><span class="level-item">3.2.1</span><span class="level-item">3.2.1 动机</span></span></a></li><li><a class="level is-mobile" href="#3-2-2-思想模板"><span class="level-left"><span class="level-item">3.2.2</span><span class="level-item">3.2.2 思想模板</span></span></a></li><li><a class="level is-mobile" href="#3-2-3-模板检索"><span class="level-left"><span class="level-item">3.2.3</span><span class="level-item">3.2.3 模板检索</span></span></a></li><li><a class="level is-mobile" href="#3-2-4-实例化推理"><span class="level-left"><span class="level-item">3.2.4</span><span class="level-item">3.2.4 实例化推理</span></span></a></li></ul></li><li><a class="level is-mobile" href="#3-3-Buffer-Manager"><span class="level-left"><span class="level-item">3.3</span><span class="level-item">3.3 Buffer Manager</span></span></a><ul class="menu-list"><li><a class="level is-mobile" href="#3-3-1-模板提炼"><span class="level-left"><span class="level-item">3.3.1</span><span class="level-item">3.3.1 模板提炼</span></span></a></li><li><a class="level is-mobile" href="#3-3-2-Meta-Buffer的动态更新"><span class="level-left"><span class="level-item">3.3.2</span><span class="level-item">3.3.2 Meta-Buffer的动态更新</span></span></a></li></ul></li></ul></li><li><a class="level is-mobile" href="#4-Experiments"><span class="level-left"><span class="level-item">4</span><span class="level-item">4 Experiments</span></span></a><ul class="menu-list"><li><a class="level is-mobile" href="#4-1-数据集和任务"><span class="level-left"><span class="level-item">4.1</span><span class="level-item">4.1 数据集和任务</span></span></a></li><li><a class="level is-mobile" href="#4-2-实现和基线"><span class="level-left"><span class="level-item">4.2</span><span class="level-item">4.2 实现和基线</span></span></a></li><li><a class="level is-mobile" href="#4-3-BoT-Achieves-Better-Accuracy-Efficiency-and-Robustness"><span class="level-left"><span class="level-item">4.3</span><span class="level-item">4.3 BoT Achieves Better Accuracy, Efficiency and Robustness</span></span></a><ul class="menu-list"><li><a class="level is-mobile" href="#4-3-1-推理准确性"><span class="level-left"><span class="level-item">4.3.1</span><span class="level-item">4.3.1 推理准确性</span></span></a></li><li><a class="level is-mobile" href="#4-3-2-推理效率"><span class="level-left"><span class="level-item">4.3.2</span><span class="level-item">4.3.2 推理效率</span></span></a></li><li><a class="level is-mobile" href="#4-3-3-推理鲁棒性"><span class="level-left"><span class="level-item">4.3.3</span><span class="level-item">4.3.3 推理鲁棒性</span></span></a></li></ul></li></ul></li><li><a class="level is-mobile" href="#5-Model-Analysis"><span class="level-left"><span class="level-item">5</span><span class="level-item">5 Model Analysis</span></span></a><ul class="menu-list"><li><a class="level is-mobile" href="#5-1-Thought-Templates的分布分析"><span class="level-left"><span class="level-item">5.1</span><span class="level-item">5.1 Thought-Templates的分布分析</span></span></a></li><li><a class="level is-mobile" href="#5-2时间成本的分布分析"><span class="level-left"><span class="level-item">5.2</span><span class="level-item">5.2时间成本的分布分析</span></span></a></li><li><a class="level is-mobile" href="#5-3-模型大小与性能的更好权衡"><span class="level-left"><span class="level-item">5.3</span><span class="level-item">5.3 模型大小与性能的更好权衡</span></span></a></li></ul></li><li><a class="level is-mobile" href="#6-Ablation-Study"><span class="level-left"><span class="level-item">6</span><span class="level-item">6 Ablation Study</span></span></a><ul class="menu-list"><li><a class="level is-mobile" href="#6-2-Problem-Distiller的影响"><span class="level-left"><span class="level-item">6.1</span><span class="level-item">6.2 Problem-Distiller的影响</span></span></a></li><li><a class="level is-mobile" href="#6-3-Meta-Buffer的影响"><span class="level-left"><span class="level-item">6.2</span><span class="level-item">6.3 Meta-Buffer的影响</span></span></a></li><li><a class="level is-mobile" href="#6-4-Buffer-Manager的影响"><span class="level-left"><span class="level-item">6.3</span><span class="level-item">6.4 Buffer-Manager的影响</span></span></a></li></ul></li><li><a class="level is-mobile" href="#7-Discussion"><span class="level-left"><span class="level-item">7</span><span class="level-item">7 Discussion</span></span></a></li><li><a class="level is-mobile" href="#8-Conclusion"><span class="level-left"><span class="level-item">8</span><span class="level-item">8 Conclusion</span></span></a></li></ul></div></div><style>#toc .menu-list > li > a.is-active + .menu-list { display: block; }#toc .menu-list > li > a + .menu-list { display: none; }</style><script src="/js/toc.js" defer></script></div><div class="card widget" data-type="links"><div class="card-content"><div class="menu"><h3 class="menu-label">链接</h3><ul class="menu-list"><li><a class="level is-mobile" href="https://nerozac.com/" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">link1</span></span><span class="level-right"><span class="level-item tag">nerozac.com</span></span></a></li></ul></div></div></div><div class="card widget" data-type="categories"><div class="card-content"><div class="menu"><h3 class="menu-label">分类</h3><ul class="menu-list"><li><a class="level is-mobile" href="/categories/DSF/"><span class="level-start"><span class="level-item">DSF</span></span><span class="level-end"><span class="level-item tag">1</span></span></a><ul><li><a class="level is-mobile" href="/categories/DSF/%E6%9C%8D%E5%8A%A1%E5%99%A8%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE/"><span class="level-start"><span class="level-item">服务器环境配置</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li></ul></li><li><a class="level is-mobile" href="/categories/%E5%A5%BD%E6%96%87%E8%BD%AC%E8%BD%BD/"><span class="level-start"><span class="level-item">好文转载</span></span><span class="level-end"><span class="level-item tag">2</span></span></a><ul><li><a class="level is-mobile" href="/categories/%E5%A5%BD%E6%96%87%E8%BD%AC%E8%BD%BD/NLP/"><span class="level-start"><span class="level-item">NLP</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile" href="/categories/%E5%A5%BD%E6%96%87%E8%BD%AC%E8%BD%BD/%E5%A4%A7%E7%A5%9E%E8%AF%AD%E5%BD%95/"><span class="level-start"><span class="level-item">大神语录</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li></ul></li><li><a class="level is-mobile" href="/categories/%E6%8A%80%E6%9C%AF%E7%99%BE%E7%A7%91/"><span class="level-start"><span class="level-item">技术百科</span></span><span class="level-end"><span class="level-item tag">9</span></span></a><ul><li><a class="level is-mobile" href="/categories/%E6%8A%80%E6%9C%AF%E7%99%BE%E7%A7%91/MacOS/"><span class="level-start"><span class="level-item">MacOS</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile" href="/categories/%E6%8A%80%E6%9C%AF%E7%99%BE%E7%A7%91/Python/"><span class="level-start"><span class="level-item">Python</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile" href="/categories/%E6%8A%80%E6%9C%AF%E7%99%BE%E7%A7%91/computer-vision/"><span class="level-start"><span class="level-item">computer_vision</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile" href="/categories/%E6%8A%80%E6%9C%AF%E7%99%BE%E7%A7%91/gitlab/"><span class="level-start"><span class="level-item">gitlab</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile" href="/categories/%E6%8A%80%E6%9C%AF%E7%99%BE%E7%A7%91/%E4%B8%89%E7%BB%B4%E9%87%8D%E5%BB%BA/"><span class="level-start"><span class="level-item">三维重建</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile" href="/categories/%E6%8A%80%E6%9C%AF%E7%99%BE%E7%A7%91/%E7%B3%BB%E7%BB%9F%E7%8E%AF%E5%A2%83%E5%8F%8A%E7%BC%96%E8%AF%91/"><span class="level-start"><span class="level-item">系统环境及编译</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile" href="/categories/%E6%8A%80%E6%9C%AF%E7%99%BE%E7%A7%91/%E8%A7%86%E9%A2%91%E7%BC%96%E8%BE%91/"><span class="level-start"><span class="level-item">视频编辑</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li></ul></li><li><a class="level is-mobile" href="/categories/%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/"><span class="level-start"><span class="level-item">论文阅读</span></span><span class="level-end"><span class="level-item tag">6</span></span></a><ul><li><a class="level is-mobile" href="/categories/%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/3DLLM/"><span class="level-start"><span class="level-item">3DLLM</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile" href="/categories/%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/LLMAgent/"><span class="level-start"><span class="level-item">LLMAgent</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile" href="/categories/%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/PCDM/"><span class="level-start"><span class="level-item">PCDM</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile" href="/categories/%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/%E4%B8%89%E7%BB%B4%E9%87%8D%E5%BB%BA/"><span class="level-start"><span class="level-item">三维重建</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li></ul></li></ul></div></div></div><div class="card widget" data-type="recent-posts"><div class="card-content"><h3 class="menu-label">最新文章</h3><article class="media"><div class="media-content"><p class="date"><time dateTime="2024-06-11T08:08:49.678Z">2024-06-11</time></p><p class="title"><a href="/2024/06/11/NeRF%E5%8E%9F%E8%AE%BA%E6%96%87%E5%8F%8A%E6%95%99%E7%A8%8B/">NeRF原论文及教程</a></p><p class="categories"><a href="/categories/%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/">论文阅读</a> / <a href="/categories/%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/%E4%B8%89%E7%BB%B4%E9%87%8D%E5%BB%BA/">三维重建</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2024-06-11T08:05:29.112Z">2024-06-11</time></p><p class="title"><a href="/2024/06/11/Buffer-of-Thoughts/">Buffer of Thoughts - Thought-Augmented Reasoning with Large Language Models</a></p><p class="categories"><a href="/categories/%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/">论文阅读</a> / <a href="/categories/%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/LLMAgent/">LLMAgent</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2024-06-06T08:48:57.589Z">2024-06-06</time></p><p class="title"><a href="/2024/06/06/Instructions-for-PhD-Students/">大牛谏言 Instructions for PhD Students</a></p><p class="categories"><a href="/categories/%E5%A5%BD%E6%96%87%E8%BD%AC%E8%BD%BD/">好文转载</a> / <a href="/categories/%E5%A5%BD%E6%96%87%E8%BD%AC%E8%BD%BD/%E5%A4%A7%E7%A5%9E%E8%AF%AD%E5%BD%95/">大神语录</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2024-06-06T08:48:57.589Z">2024-06-06</time></p><p class="title"><a href="/2024/06/06/TinyCudaNN/">TinyCudaNN</a></p><p class="categories"><a href="/categories/%E6%8A%80%E6%9C%AF%E7%99%BE%E7%A7%91/">技术百科</a> / <a href="/categories/%E6%8A%80%E6%9C%AF%E7%99%BE%E7%A7%91/%E4%B8%89%E7%BB%B4%E9%87%8D%E5%BB%BA/">三维重建</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2024-06-06T08:48:57.588Z">2024-06-06</time></p><p class="title"><a href="/2024/06/06/3d-point-network-distillation-via-3d-fusion/">3D point network distillation from an open-vocabulary 2D image model via 3D fusion</a></p><p class="categories"><a href="/categories/%E6%8A%80%E6%9C%AF%E7%99%BE%E7%A7%91/">技术百科</a> / <a href="/categories/%E6%8A%80%E6%9C%AF%E7%99%BE%E7%A7%91/%E4%B8%89%E7%BB%B4%E9%87%8D%E5%BB%BA/">三维重建</a></p></div></article></div></div><div class="card widget" data-type="archives"><div class="card-content"><div class="menu"><h3 class="menu-label">归档</h3><ul class="menu-list"><li><a class="level is-mobile" href="/archives/2024/06/"><span class="level-start"><span class="level-item">六月 2024</span></span><span class="level-end"><span class="level-item tag">14</span></span></a></li><li><a class="level is-mobile" href="/archives/2024/05/"><span class="level-start"><span class="level-item">五月 2024</span></span><span class="level-end"><span class="level-item tag">4</span></span></a></li></ul></div></div></div><div class="card widget" data-type="tags"><div class="card-content"><div class="menu"><h3 class="menu-label">标签</h3><div class="field is-grouped is-grouped-multiline"><div class="control"><a class="tags has-addons" href="/tags/3DLLM/"><span class="tag">3DLLM</span><span class="tag">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/CUDA%E9%A9%B1%E5%8A%A8/"><span class="tag">CUDA驱动</span><span class="tag">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/DSF/"><span class="tag">DSF</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/LLMAgent/"><span class="tag">LLMAgent</span><span class="tag">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/MacOS/"><span class="tag">MacOS</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/NLP/"><span class="tag">NLP</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/PCDM/"><span class="tag">PCDM</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Python/"><span class="tag">Python</span><span class="tag">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Transformer/"><span class="tag">Transformer</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/computer-vision/"><span class="tag">computer_vision</span><span class="tag">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/conda-forge/"><span class="tag">conda-forge</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/docker/"><span class="tag">docker</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/gcc/"><span class="tag">gcc</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/gitlab/"><span class="tag">gitlab</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E4%B8%89%E7%BB%B4%E9%87%8D%E5%BB%BA/"><span class="tag">三维重建</span><span class="tag">3</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E5%8D%9A%E5%A3%AB%E7%94%9F%E6%B6%AF/"><span class="tag">博士生涯</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E5%A4%96%E6%8E%A5%E8%AE%BE%E5%A4%87/"><span class="tag">外接设备</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E5%A4%A7%E7%A5%9E%E8%AF%AD%E5%BD%95/"><span class="tag">大神语录</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E5%A5%BD%E6%96%87%E8%BD%AC%E8%BD%BD/"><span class="tag">好文转载</span><span class="tag">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E6%8A%80%E6%9C%AF%E7%99%BE%E7%A7%91/"><span class="tag">技术百科</span><span class="tag">7</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E6%9C%8D%E5%8A%A1%E5%99%A8/"><span class="tag">服务器</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E7%82%B9%E4%BA%91/"><span class="tag">点云</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E7%B3%BB%E7%BB%9F%E7%8E%AF%E5%A2%83%E5%8F%8A%E7%BC%96%E8%AF%91/"><span class="tag">系统环境及编译</span><span class="tag">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E8%A7%86%E9%A2%91%E7%BC%96%E8%BE%91/"><span class="tag">视频编辑</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/"><span class="tag">论文阅读</span><span class="tag">6</span></a></div></div></div></div></div></div><!--!--></div></div></section><footer class="footer"><div class="container"><div class="level"><div class="level-start"><a class="footer-logo is-block mb-2" href="/">Zac&#039;s Blog</a><p class="is-size-7"><span>&copy; 2024 Jiawei Li</span>  Powered by <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a> &amp; <a href="https://github.com/ppoffice/hexo-theme-icarus" target="_blank" rel="noopener">Icarus</a></p></div><div class="level-end"><div class="field has-addons"><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Attribution 4.0 International" href="https://creativecommons.org/licenses/by/4.0/"><i class="fab fa-creative-commons-by"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Download on GitHub" href="https://github.com/adrianJW421"><i class="fab fa-github"></i></a></p></div></div></div></div></footer><script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/moment@2.22.2/min/moment-with-locales.min.js"></script><script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.4/dist/clipboard.min.js" defer></script><script>moment.locale("zh-cn");</script><script>var IcarusThemeSettings = {
+            article: {
+                highlight: {
+                    clipboard: true,
+                    fold: 'unfolded'
+                }
+            }
+        };</script><script src="/js/column.js"></script><script src="/js/animation.js"></script><a id="back-to-top" title="回到顶端" href="javascript:;"><i class="fas fa-chevron-up"></i></a><script src="/js/back_to_top.js" defer></script><!--!--><!--!--><!--!--><script src="https://cdn.jsdelivr.net/npm/cookieconsent@3.1.1/build/cookieconsent.min.js" defer></script><script>window.addEventListener("load", () => {
+      window.cookieconsent.initialise({
+        type: "info",
+        theme: "edgeless",
+        static: false,
+        position: "bottom-left",
+        content: {
+          message: "此网站使用Cookie来改善您的体验。",
+          dismiss: "知道了！",
+          allow: "允许使用Cookie",
+          deny: "拒绝",
+          link: "了解更多",
+          policy: "Cookie政策",
+          href: "https://www.cookiesandyou.com/",
+        },
+        palette: {
+          popup: {
+            background: "#edeff5",
+            text: "#838391"
+          },
+          button: {
+            background: "#4b81e8"
+          },
+        },
+      });
+    });</script><script src="https://cdn.jsdelivr.net/npm/lightgallery@1.10.0/dist/js/lightgallery.min.js" defer></script><script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.8.1/dist/js/jquery.justifiedGallery.min.js" defer></script><script>window.addEventListener("load", () => {
+            if (typeof $.fn.lightGallery === 'function') {
+                $('.article').lightGallery({ selector: '.gallery-item' });
+            }
+            if (typeof $.fn.justifiedGallery === 'function') {
+                if ($('.justified-gallery > p > .gallery-item').length) {
+                    $('.justified-gallery > p > .gallery-item').unwrap();
+                }
+                $('.justified-gallery').justifiedGallery();
+            }
+        });</script><!--!--><!--!--><script type="text/javascript" id="MathJax-script" async>MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']]
+      },
+      svg: {
+        fontCache: 'global'
+      },
+      chtml: {
+        matchFontHeight: false
+      }
+    };</script><script src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js"></script><!--!--><!--!--><!--!--><script src="/js/main.js" defer></script><div class="searchbox"><div class="searchbox-container"><div class="searchbox-header"><div class="searchbox-input-container"><input class="searchbox-input" type="text" placeholder="想要查找什么..."></div><a class="searchbox-close" href="javascript:;">×</a></div><div class="searchbox-body"></div></div></div><script src="/js/insight.js" defer></script><script>document.addEventListener('DOMContentLoaded', function () {
+            loadInsight({"contentUrl":"/content.json"}, {"hint":"想要查找什么...","untitled":"(无标题)","posts":"文章","pages":"页面","categories":"分类","tags":"标签"});
+        });</script></body></html>

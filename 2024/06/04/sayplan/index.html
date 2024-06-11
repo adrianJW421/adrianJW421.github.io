@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="zh"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><meta><title>SayPlan - Grounding Large Language Models using 3D Scene Graphs for Scalable Robot Task Planning - NeroZac</title><link rel="manifest" href="/manifest.json"><meta name="application-name" content="Zac&#039;s Blog"><meta name="msapplication-TileImage" content="/img/avatar.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Zac&#039;s Blog"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="description" content="摘要:"><meta property="og:type" content="blog"><meta property="og:title" content="Zac&#039;s Blog"><meta property="og:url" content="https://nerozac.com/2024/06/04/sayplan/"><meta property="og:site_name" content="Jiawei Li (Zac)"><meta property="og:description" content="摘要:"><meta property="og:locale" content="zh_CN"><meta property="og:image" content="https://nerozac.com/img/og_image.png"><meta property="article:published_time" content="2024-06-04T04:53:36.402Z"><meta property="article:modified_time" content="2024-06-04T04:53:36.403Z"><meta property="article:author" content="Jiawei Li (Zac)"><meta property="article:tag" content="论文阅读"><meta property="article:tag" content="3DLLM"><meta property="twitter:card" content="summary"><meta property="twitter:image:src" content="https://nerozac.com/img/og_image.png"><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"https://nerozac.com/2024/06/04/sayplan/"},"headline":"Zac's Blog","image":["https://nerozac.com/img/og_image.png"],"datePublished":"2024-06-04T04:53:36.402Z","dateModified":"2024-06-04T04:53:36.403Z","author":{"@type":"Person","name":"Jiawei Li"},"publisher":{"@type":"Organization","name":"NeroZac","logo":{"@type":"ImageObject","url":{"text":"Zac's Blog"}}},"description":"摘要:"}</script><link rel="canonical" href="https://nerozac.com/2024/06/04/sayplan/"><link rel="icon" href="/img/avatar.png"><link rel="stylesheet" href="https://use.fontawesome.com/releases/v6.0.0/css/all.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.7.0/styles/atom-one-light.css"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;600&amp;family=Source+Code+Pro"><link rel="stylesheet" href="/css/default.css"><style>body>.footer,body>.navbar,body>.section{opacity:0}</style><!--!--><!--!--><!--!--><!--!--><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cookieconsent@3.1.1/build/cookieconsent.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@1.10.0/dist/css/lightgallery.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/justifiedGallery@3.8.1/dist/css/justifiedGallery.min.css"><!--!--><!--!--><!--!--><style>.pace{-webkit-pointer-events:none;pointer-events:none;-webkit-user-select:none;-moz-user-select:none;user-select:none}.pace-inactive{display:none}.pace .pace-progress{background:#3273dc;position:fixed;z-index:2000;top:0;right:100%;width:100%;height:2px}</style><script src="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/pace.min.js"></script><!--!--><!--!--><!-- hexo injector head_end start --><script>
+  (function () {
+      function switchTab() {
+          if (!location.hash) {
+            return;
+          }
+
+          const id = '#' + CSS.escape(location.hash.substring(1));
+          const $tabMenu = document.querySelector(`.tabs a[href="${id}"]`);
+          if (!$tabMenu) {
+            return;
+          }
+
+          const $tabMenuContainer = $tabMenu.parentElement.parentElement;
+          Array.from($tabMenuContainer.children).forEach($menu => $menu.classList.remove('is-active'));
+          Array.from($tabMenuContainer.querySelectorAll('a'))
+              .map($menu => document.getElementById($menu.getAttribute("href").substring(1)))
+              .forEach($content => $content.classList.add('is-hidden'));
+
+          if ($tabMenu) {
+              $tabMenu.parentElement.classList.add('is-active');
+          }
+          const $activeTab = document.querySelector(id);
+          if ($activeTab) {
+              $activeTab.classList.remove('is-hidden');
+          }
+      }
+      switchTab();
+      window.addEventListener('hashchange', switchTab, false);
+  })();
+  </script><!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.2.0"></head><body class="is-2-column"><nav class="navbar navbar-main"><div class="container navbar-container"><div class="navbar-brand justify-content-center"><a class="navbar-item navbar-logo" href="/">Zac&#039;s Blog</a></div><div class="navbar-menu"><div class="navbar-start"><a class="navbar-item" href="/">Home</a><a class="navbar-item" href="/archives">Archives</a><a class="navbar-item" href="/categories">Categories</a><a class="navbar-item" href="/tags">Tags</a><a class="navbar-item" href="/about">About</a></div><div class="navbar-end"><a class="navbar-item" target="_blank" rel="noopener" title="Download on GitHub" href="https://github.com/adrianJW421"><i class="fab fa-github"></i></a><a class="navbar-item is-hidden-tablet catalogue" title="目录" href="javascript:;"><i class="fas fa-list-ul"></i></a><a class="navbar-item search" title="搜索" href="javascript:;"><i class="fas fa-search"></i></a></div></div></div></nav><section class="section"><div class="container"><div class="columns"><div class="column order-2 column-main is-8-tablet is-8-desktop is-8-widescreen"><div class="card"><article class="card-content article" role="article"><div class="article-meta is-size-7 is-uppercase level is-mobile"><div class="level-left"><span class="level-item"><time dateTime="2024-06-04T04:53:36.402Z" title="6/4/2024, 12:53:36 PM">2024-06-04</time>发表</span><span class="level-item"><time dateTime="2024-06-04T04:53:36.403Z" title="6/4/2024, 12:53:36 PM">2024-06-04</time>更新</span><span class="level-item"><a class="link-muted" href="/categories/%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/">论文阅读</a><span> / </span><a class="link-muted" href="/categories/%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/3DLLM/">3DLLM</a></span><span class="level-item">1 小时读完 (大约7291个字)</span></div></div><h1 class="title is-3 is-size-4-mobile">SayPlan - Grounding Large Language Models using 3D Scene Graphs for Scalable Robot Task Planning</h1><div class="content"><p>摘要: </p>
+<span id="more"></span>
+
+<style>
+    .blue-box {
+        border: 2px solid blue; /* 设置边框为蓝色 */
+        padding: 5px; /* 设置内边距 */
+        background-color: lightblue; /* 设置背景颜色为浅蓝色 */
+        color: black; /* 设置文本颜色为黑色 */
+        width: 600px; /* 设置方框的宽度 */
+        margin: 5px; /* 设置外边距 */
+    }
+</style>
+
+<br>
+
+<p><span id="jumpHere"> 〓 Table of Contents 〓 </span></p>
+<br>
+
+<ul>
+<li><a href="#abstract">Abstract</a></li>
+<li><a href="#introduction">Introduction</a></li>
+<li><a href="#related-work">Related Work</a></li>
+<li><a href="#sayplan">SayPlan</a><ul>
+<li><a href="#%E9%97%AE%E9%A2%98%E8%A1%A8%E8%BF%B0">问题表述</a></li>
+<li><a href="#%E9%A2%84%E5%A4%87%E7%9F%A5%E8%AF%86">预备知识</a><ul>
+<li><a href="#%E5%9C%BA%E6%99%AF%E8%A1%A8%E7%A4%BA%EF%BC%9A3d%E5%9C%BA%E6%99%AF%E5%9B%BE">场景表示：3D场景图</a></li>
+<li><a href="#%E5%9C%BA%E6%99%AF%E5%9B%BE%E6%A8%A1%E6%8B%9F%E5%99%A8">场景图模拟器</a></li>
+</ul>
+</li>
+<li><a href="#%E6%96%B9%E6%B3%95">方法</a><ul>
+<li><a href="#%E8%AF%AD%E4%B9%89%E6%90%9C%E7%B4%A2">语义搜索</a></li>
+<li><a href="#%E8%BF%AD%E4%BB%A3%E9%87%8D%E6%96%B0%E8%A7%84%E5%88%92">迭代重新规划</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#%E5%AE%9E%E9%AA%8C%E8%AE%BE%E7%BD%AE">实验设置</a><ul>
+<li><a href="#%E8%AF%AD%E4%B9%89%E6%90%9C%E7%B4%A2">语义搜索</a></li>
+<li><a href="#%E5%9B%A0%E6%9E%9C%E8%A7%84%E5%88%92">因果规划</a></li>
+</ul>
+</li>
+<li><a href="#%E7%BB%93%E6%9E%9C">结果</a><ul>
+<li><a href="#%E8%AF%AD%E4%B9%89%E6%90%9C%E7%B4%A2">语义搜索</a></li>
+<li><a href="#%E6%89%A9%E5%B1%95%E6%80%A7%E5%88%86%E6%9E%90">扩展性分析</a></li>
+<li><a href="#%E5%9B%A0%E6%9E%9C%E8%A7%84%E5%88%92">因果规划</a></li>
+</ul>
+</li>
+<li><a href="#%E5%B1%80%E9%99%90%E6%80%A7">局限性</a></li>
+<li><a href="#%E7%BB%93%E8%AE%BA">结论</a></li>
+</ul>
+<p><br><br></p>
+<h2 id="Abstract"><a href="#Abstract" class="headerlink" title="Abstract"></a>Abstract</h2><p><a href="#jumpHere">〓 ReTURN 〓</a></p>
+<p>大型语言模型（LLMs）在开发多任务通用规划代理方面已显示出令人印象深刻的成果。然而，将这些计划落实到广阔的、多楼层和多房间环境中，对机器人技术提出了巨大挑战。我们介绍了SayPlan，这是一种基于LLM的大规模任务规划方法，使用3D场景图（3DSG）表示来进行机器人任务规划。</p>
+<p>为了确保我们方法的可扩展性，我们采取了以下措施：</p>
+<ol>
+<li><p>利用3DSG的层次结构，使LLMs能够从完整图的较小压缩表示中进行任务相关子图的语义搜索；</p>
+</li>
+<li><p>通过整合经典路径规划器，减少LLM的规划范围；</p>
+</li>
+<li><p>引入迭代重新规划管道，利用场景图模拟器的反馈来优化初始计划，纠正不可行的动作并避免规划失败。</p>
+</li>
+</ol>
+<p>我们在两个大规模环境中评估了我们的方法，这些环境包含多达3层楼和36个房间，共有140个资产和对象。结果表明，我们的方法能够将抽象的自然语言指令转化为大规模、长远任务计划，并使移动操作机器人能够执行这些计划。</p>
+<p><br><br><br></p>
+<h2 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h2><p><a href="#jumpHere">〓 ReTURN 〓</a></p>
+<p>“给我做杯咖啡并放在我的桌子上”——如此看似简单的命令，对当今的机器人来说仍是艰巨的任务。这一挑战遍及机器人学的各个方面，包括导航、感知、操控以及高层次任务规划。大型语言模型（LLMs）的最新进展在将常识知识融入机器人领域方面取得了重大进展。这使得机器人能够为需要大量背景知识和语义理解的各种任务规划复杂策略。</p>
+<p>为了使LLMs在机器人规划中有效，它们必须基于现实，即必须遵守机器人操作的物理环境所呈现的约束，包括可用的affordances、相关谓词以及动作对当前状态的影响。此外，在广阔的环境中，机器人还必须理解自己所在的位置，找到感兴趣的物品，并理解环境的拓扑结构，以便在必要的区域进行规划。为了解决这一问题，最近的研究探索了利用基于视觉的价值函数、物体检测器或场景的Planning Domain Definition Language (PDDL)描述来落实基于LLM的规划器的输出。然而，这些努力主要局限于小规模环境，通常是单个房间，预先编码了所有现有资产和物体的信息。</p>
+<p>我们提出了一种可扩展的方法，用于在跨多个房间和楼层的环境中落实基于LLM的任务规划。我们通过利用日益增长的3D场景图（3DSG）研究实现这一目标。3DSGs捕捉了丰富的拓扑和层次化的语义图表示，能够编码任务规划所需的信息，包括物体状态、谓词、affordances和属性，使用自然语言进行编码，适合LLM解析。我们可以利用这种图的JSON表示作为预训练LLM的输入，为了确保规划的可扩展性，我们提出了三个关键创新。</p>
+<p>首先，我们提出了一种机制，使LLM能够通过操控“压缩”3DSG的节点进行任务相关子图的语义搜索，通过expand和contract API函数调用，仅暴露完整图的顶层，从而使得在越来越大规模的环境中进行规划成为可能。在此过程中，LLM在规划期间保持对相对较小的信息子图的关注，不会超出其token限制。其次，由于任务计划的范围随着任务指令的复杂性和范围的增加而增长，LLM产生幻觉或生成不可行的动作序列的趋势也在增加。我们通过首先放宽LLM生成导航组件的需求，转而利用现有的最优路径规划器如Dijkstra来连接LLM生成的高层节点来应对这一问题。最后，为确保计划的可行性，我们引入了迭代重新规划管道，利用场景图模拟器的反馈验证和优化初始计划，以纠正任何不可执行的动作，例如在将物品放入冰箱之前忘记打开冰箱门，从而避免由于不一致、幻觉或违反环境所施加的物理约束和谓词而导致的规划失败。</p>
+<p>我们的SayPlan方法确保了在跨多个楼层和房间的大规模环境中为移动操作机器人生成可行且基于现实的计划。我们在一系列90个任务中评估了我们的框架，这些任务分为四个难度级别，包括语义搜索任务（如“找些非素食的东西”）到互动性强、长远的任务，具有模糊的多房间目标，要求大量常识推理（如“和Niko开个玩笑”）。这些任务在两个广阔的环境中进行评估，包括一个包含37个房间和150个可互动资产和物体的大型办公楼层，以及一个拥有28个房间和112个物体的三层住宅。我们的实验验证了SayPlan在大型环境中进行任务规划的能力，同时保持较低的token占用率。通过引入语义搜索管道，我们可以将用于LLM解析的完整大规模场景表示减少多达82.1%，我们的迭代重新规划管道使得几乎完美的可执行率，适用于实际移动操作机器人执行。</p>
+<p><br><br><br></p>
+<h2 id="Related-Work"><a href="#Related-Work" class="headerlink" title="Related Work"></a>Related Work</h2><p><a href="#jumpHere">〓 ReTURN 〓</a></p>
+<p>机器人任务规划旨在生成一系列高层次的动作，以在特定环境中实现目标。传统方法使用领域特定语言，如PDDL和ASP，以及语义解析、搜索技术和复杂启发式方法来解决问题。然而，这些方法在处理大型环境时缺乏可扩展性，并且在现实世界操作中缺乏任务通用性。基于层次和强化学习的替代方法在数据需求和可扩展性方面面临挑战。我们的工作利用LLM的上下文学习能力，在3D场景图上生成任务计划。在这种情况下，任务可以用自然语言表达，LLM的互联网规模训练提供了所需的任务通用性，而3D场景图为大规模环境操作提供了必要的基础。这相比传统的非LLM方法，提供了一个通用且可扩展的框架。</p>
+<p>使用LLM进行任务规划，即将自然语言提示转化为机器人任务计划，是该领域的新兴趋势。早期研究有效利用了预训练LLM的上下文学习能力，为具身代理生成可执行计划。机器人领域的一个关键挑战是将这些计划扎根于机器人的操作环境中。此前的研究探索了使用物体检测器、PDDL环境表示或价值函数来实现这一点，然而，这些方法主要局限于单房间环境，且随着场景中物体数量的增加，其扩展性较差，限制了其在多房间或多楼层环境中的规划能力。在本研究中，我们探索了3D场景图和LLM生成大规模场景计划的能力，利用这些表示的固有层次性和语义性质。</p>
+<p>在LLM中整合外部知识是一项不断发展的研究方向，结合语言模型和外部工具以提高其输出的可靠性。在这种情况下，外部模块用于向LLM提供反馈或额外信息，以指导其输出生成。这可以通过API调用外部工具或从操作环境中获取文本反馈来实现。与我们的工作更为相关的是CLAIRIFY，它迭代利用编译器错误反馈来重新提示LLM生成语法有效的代码。在这些想法的基础上，我们提出了一种基于场景图模拟器的迭代计划验证过程，以确保所有生成的计划符合预构建场景图捕捉的约束和谓词。这确保了计划在对应真实环境中的移动机械手机器人上的直接可执行性。</p>
+<p><br><br><br></p>
+<h2 id="SayPlan"><a href="#SayPlan" class="headerlink" title="SayPlan"></a>SayPlan</h2><p><a href="#jumpHere">〓 ReTURN 〓</a></p>
+<h3 id="问题表述"><a href="#问题表述" class="headerlink" title="问题表述"></a>问题表述</h3><p><a href="#jumpHere">〓 ReTURN 〓</a></p>
+<p>我们旨在解决基于自然语言指令的自主代理（如移动操作机器人）在大规模环境中的长程任务规划挑战。这需要机器人理解抽象且模糊的指令，理解场景，并生成包含导航和操作的任务计划。现有方法缺乏在跨多个楼层和房间的场景中进行推理的能力。</p>
+<p>我们的重点是将大规模场景整合到基于语言模型（LLMs）的规划代理中，并解决可扩展性问题。我们旨在解决两个关键问题：</p>
+<ol>
+<li>在LLM的token限制内表示大规模场景。</li>
+<li>在大规模环境中生成长远计划时，减轻LLM产生的幻觉和错误输出。</li>
+</ol>
+<p><br><br></p>
+<h3 id="预备知识"><a href="#预备知识" class="headerlink" title="预备知识"></a>预备知识</h3><p>在此，我们描述环境的3D场景图表示及其API模拟器，我们在整个方法中利用这些工具。</p>
+<p><br><br></p>
+<h4 id="场景表示：3D场景图"><a href="#场景表示：3D场景图" class="headerlink" title="场景表示：3D场景图"></a>场景表示：3D场景图</h4><p>3D场景图（3DSG）最近作为机器人可操作的世界表示方式出现。它通过空间语义和对象关系在多个层次上对环境进行层次化抽象，同时捕捉环境中实体的相关状态、可供性和谓词。形式上，3DSG是一个层次化的多重图 ( G &#x3D; (V, E) )，其中顶点集 ( V ) 包括 ( V1 ∪ V2 ∪ … ∪ VK )，每个 ( Vk ) 表示层次结构k中的顶点集。顶点 ( v ∈ Vk ) 发出的边仅可终止于 ( Vk−1 ∪ Vk ∪ Vk+1 )，即边连接相同层次或相邻层次的节点。</p>
+<p>我们假设一个大规模环境的预构建3DSG表示是通过现有技术生成的。整个3DSG可以表示为一个NetworkX图对象，并以JSON数据格式进行文本序列化，可直接被预训练的LLM解析。3DSG的一个资产节点示例如下：{name: coffee_machine, type: asset, location: kitchen, affordances: [turn_on, turn_off, release], state: off, attributes: [red, automatic], position: [2.34, 0.45, 2.23]}，节点之间的边表示为{kitchen↔coffee machine}。3DSG层次结构主要分为四个层次：楼层、房间、资产和对象。顶层包含楼层，每个楼层分支到多个房间，这些房间通过姿势节点相互连接以表示环境的拓扑结构。在每个房间内，有资产（不可移动实体）和对象（可移动实体）。资产和对象节点都编码了包括状态、可供性、附加属性（如颜色或重量）和3D姿势在内的特定信息。图中还包含一个动态代理节点，表示机器人在场景中的位置。请注意，这个层次结构是可扩展的，节点层次可以调整以捕捉更大的环境，例如校园和建筑物。</p>
+<p><br><br></p>
+<h4 id="场景图模拟器"><a href="#场景图模拟器" class="headerlink" title="场景图模拟器"></a>场景图模拟器</h4><p>场景图模拟器是用于操作JSON格式的3DSG的一组API调用，主要功能包括：</p>
+<ol>
+<li>collapse(G)：给定完整的3DSG，此函数返回更新后的场景图，仅显示3DSG层次结构中的最高层次节点，例如楼层节点。</li>
+<li>expand(node name)：返回更新后的3DSG，显示与节点名相关的下一级别的所有节点。</li>
+<li>contract(node name)：返回更新后的3DSG，隐藏与节点名相关的下一级别的所有节点。</li>
+<li>verify_plan(plan)：在由3DSG捕捉的抽象图层级模拟生成的计划，以检查每个动作是否符合环境的谓词、状态和可供性。如“无法拿起香蕉”，如果包含香蕉的冰箱是关闭的。</li>
+</ol>
+<p><br><br></p>
+<h3 id="方法"><a href="#方法" class="headerlink" title="方法"></a>方法</h3><p>我们提出了一个可扩展的框架，使用3DSG表示将预训练LLM的通用任务规划能力与跨越多个楼层和房间的大规模环境结合起来。给定3DSG ( G ) 和自然语言定义的任务指令 ( I )，我们可以将框架SayPlan视为一个高层次任务规划器 ( π(a|I, G) )，能够生成在机器人操作环境中扎根的长远计划。这一计划随后被送入低层次的视觉基础运动规划器以实现现实世界的执行。为确保SayPlan的可扩展性，引入了两个阶段：语义搜索和迭代重新规划，详细如下。SayPlan流程的概述见图1，对应的伪代码见算法1。</p>
+<p><br><br></p>
+<h4 id="语义搜索"><a href="#语义搜索" class="headerlink" title="语义搜索"></a>语义搜索</h4><p>在使用LLM对3DSG进行规划时，我们注意到两个关键观察：</p>
+<ol>
+<li>大规模环境的3DSG可以随着其包含的房间、资产和对象的数量无限增长，使其作为LLM的输入变得不切实际，因为token限制。</li>
+<li>解决给定任务仅需全3DSG的一个子集 ( G′ )，例如制作一杯咖啡时不需要知道浴室里的牙膏。</li>
+</ol>
+<p>为此，语义搜索阶段旨在从全3DSG中识别出包含解决给定任务所需实体的较小、任务特定的子图 ( G′ )。为识别 ( G′ )，我们利用这些表示的语义层次结构和LLM的推理能力。我们首先折叠 ( G )，仅显示其顶层节点，例如楼层节点，初始token表示减少约80%。LLM通过扩展和收缩API调用操纵这个折叠图，以根据给定指令 ( I ) 识别任务所需的子图。这通过一组输入输出示例中的上下文学习实现，并利用连锁思维提示指导LLM识别需要操作的节点。选择的API调用和节点在场景图模拟器中执行，更新后的3DSG返回给LLM进一步探索。如果扩展的节点被发现包含与任务无关的实体，LLM会收缩它以管理token限制并保持任务特定的子图。</p>
+<p>为避免扩展已收缩的节点，我们维护一个先前扩展节点的列表，作为附加记忆输入传递给LLM，促进马尔可夫决策过程，使SayPlan能够扩展到广泛的搜索序列，而无需维护完整的交互历史。一旦在当前子图 ( G′ ) 中识别出所有必要的资产和对象，LLM就会自动进入规划阶段。语义搜索期间LLM与场景图的交互示例见附录K。</p>
+<p><br><br></p>
+<h4 id="迭代重新规划"><a href="#迭代重新规划" class="headerlink" title="迭代重新规划"></a>迭代重新规划</h4><p>在确定子图 ( G’ ) 和任务指令 ( I ) 后，LLM 进入管道的规划阶段。此时，LLM 需要生成一系列节点级别的导航（如 goto(pose2)）和操作（如 pickup(coffee_mug)）动作，以满足给定的任务指令。然而，LLM 并不是完美的规划代理，容易产生错误或幻觉输出。这在处理大规模环境或长远任务时更为明显。</p>
+<p>我们通过两种机制来辅助 LLM 生成任务计划。首先，我们通过将姿态级路径规划委托给优化路径规划器（如 Dijkstra）来缩短 LLM 的规划范围。例如，将 [goto(meeting_room), goto(pose13), goto(pose14), goto(pose8), …, goto(kitchen), access(fridge), open(fridge)] 简化为 [goto(meeting_room), goto(kitchen), access(fridge), open(fridge)]。路径规划器处理高层位置之间的最优路线，允许 LLM 专注于任务的关键操作部分。</p>
+<p>其次，我们利用 LLM 的自我反思能力，通过场景图模拟器的文本反馈来迭代地修正其生成的计划。该模拟器评估生成的计划是否符合场景图的谓词、状态和可供性。例如，如果机器人已经拿着东西或不在正确位置，或者冰箱未先打开，则 pick(banana) 操作可能会失败。这些失败被转换为文本反馈（如“无法拿起香蕉”），附加到 LLM 的输入中，并用于生成更新的可执行计划。</p>
+<p>这种迭代过程包括规划、验证和反馈整合，直到获得可行计划。验证后的计划被传递给低级运动规划器以执行机器人操作。LLM 和场景图在迭代重新规划中的交互示例见附录 L。具体实现细节见附录 A。</p>
+<p><br><br><br></p>
+<h2 id="实验设置"><a href="#实验设置" class="headerlink" title="实验设置"></a>实验设置</h2><p><a href="#jumpHere">〓 ReTURN 〓</a></p>
+<p>我们设计实验以评估 LLM 在高层任务规划中的 3D 场景图推理能力，重点是移动操纵机器人。计划包括一个 7 自由度的机器人臂，配有两指夹持器和一个移动基座。我们使用两个大规模环境，分别展示多个房间和楼层，LLM 代理需要在这些环境中进行规划。</p>
+<p>为更好地展示 SayPlan 的能力，我们将其语义搜索能力与总体因果规划能力分开评估，具体如下：</p>
+<p><br><br></p>
+<h3 id="语义搜索-1"><a href="#语义搜索-1" class="headerlink" title="语义搜索"></a>语义搜索</h3><p>在此测试中，LLM 在折叠的 3D 场景图上进行查询，需要推理房间和楼层节点名称及其属性，以找到执行任务指令所需的相关资产和对象。我们与人类基线进行比较，了解 LLM 的语义搜索能力与人类思维过程的对比。此外，为更好地理解不同 LLM 模型对图形推理的影响，我们还比较了使用 GPT-3.5 的 SayPlan 变体。</p>
+<p><br><br></p>
+<h3 id="因果规划"><a href="#因果规划" class="headerlink" title="因果规划"></a>因果规划</h3><p>在此实验中，我们评估 SayPlan 生成可行计划以解决给定自然语言指令的能力。评估指标分为两部分：1）正确性，主要验证计划的总体目标及其与人类解决任务的方式的对齐；2）可执行性，评估计划与场景图环境约束的对齐及其由移动操纵机器人执行的能力。我们注意到，可执行的计划不一定正确，反之亦然。我们将 SayPlan 与两种基线方法进行比较，这些方法在任务规划中整合了 LLM：LLM-As-Planner 生成完整的计划序列，包括机器人完成任务必须执行的所有导航和操作动作序列；LLM+P 是 SayPlan 的一种简化版本，仅整合路径规划器以允许更短的规划序列，无需迭代重新规划。</p>
+<p><br><br><br></p>
+<h2 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h2><p><a href="#jumpHere">〓 ReTURN 〓</a></p>
+<h3 id="语义搜索-2"><a href="#语义搜索-2" class="headerlink" title="语义搜索"></a>语义搜索</h3><p>我们在表 1 中总结了语义搜索评估的结果。SayPlan (GPT-3.5) 在推理输入图表示时 consistently 失败，幻觉产生探索节点或多次停留在同一节点上。相比之下，SayPlan (GPT-4) 在简单和复杂搜索任务中分别达到 86.7% 和 73.3% 的成功率，显著优于 GPT-3.5。</p>
+<p>尽管预期中人类基线在所有指令集上均达到 100%，我们更关注语义搜索中常识推理的定性评估。我们希望了解人类和 LLM 在任务指令下使用的语义搜索启发式方法的相似性。</p>
+<p>我们在附录 F 中展示了 SayPlan (GPT-4) 和人类基线探索节点的完整序列。表中显示，对于大多数任务，SayPlan (GPT-4) 展现出与人类类似的语义和常识推理，例如在要求“找一个熟香蕉”时，LLM 首先探索厨房，然后是下一个最可能的位置——自助餐厅。在指令中没有语义的情况下（如“找物体 K31X”），LLM 代理能够进行类似广度优先搜索，遍历所有未探索节点。这突出显示了有意义的节点名称和属性的重要性，这些名称和属性捕捉了相关环境语义，LLM 可以利用这些语义进行有效搜索。</p>
+<p>一个奇怪的失败案例发生在简单搜索指令中涉及否定的情况，例如“找一个没有柜子的办公室”或“找一个没有马桶的浴室”。这种情况下，代理总是失败。在复杂搜索指令中，还注意到LLM无法对图节点进行简单的基于距离和数量的推理。虽然这些对于人类来说是微不足道的，但对于LLM代理而言，需要同时推理多个节点，这常常会导致幻觉或错误计数。</p>
+<p><br><br></p>
+<h3 id="扩展性分析"><a href="#扩展性分析" class="headerlink" title="扩展性分析"></a>扩展性分析</h3><p>我们还分析了SayPlan在语义搜索中的扩展性。表2展示了利用3D场景图的层次结构并允许LLM从压缩的初始状态探索图所带来的影响。这使得表示办公室环境所需的初始输入标记减少了82.1%，家庭环境减少了60.4%。图3展示了赋予LLM收缩不适合解决任务的已探索节点的能力，使其在整个语义搜索过程中，从标记角度保持近乎恒定的输入内存。请注意，最初存在的标记数量已经代表了附录J中给出的输入提示标记。关于SayPlan在更大3DSG上的扩展性的进一步消融研究见附录H。</p>
+<p><br><br></p>
+<h3 id="因果规划-1"><a href="#因果规划-1" class="headerlink" title="因果规划"></a>因果规划</h3><p>表3（左）总结了简单和长时间指令的因果规划结果。我们将SayPlan的性能与两个基线方法进行比较：LLM-As-Planner和LLM+P。所有三种方法在简单规划任务中都表现出一致的正确性，达到93%，这主要是由于底层LLM推理能力的结果。然而，值得注意的是，在长时间任务中，路径规划器和迭代重新规划在提高正确性指标方面起着重要作用，通过缩短规划时间并允许LLM反思其先前的输出来实现。</p>
+<p>结果表明，确保任务计划可执行性的关键是迭代重新规划。LLM-As-Planner和LLM+P都表现出较差的可执行性，而SayPlan由于迭代重新规划实现了近乎完美的可执行性，这确保了生成的计划符合环境的约束和前提条件。详细的任务计划和遇到的错误见附录G。我们在表3（右）中总结了这些错误，显示了LLM+P和LLM-As-Planner生成的计划中包含的各种错误，限制了它们的可执行性。尽管LLM+P通过经典路径规划器减少了导航路径规划错误，但仍然存在环境操作错误——缺失操作或违反环境前提的错误。SayPlan通过迭代重新规划减少了这些错误，但在6.67%的任务中，未能纠正某些幻觉节点。尽管我们认为这些错误最终可以通过迭代重新规划得到纠正，但我们在所有实验中将重新规划步骤限制为5步。我们在附录I中展示了使用SayPlan在配有视觉引导运动控制器的移动机械手机器人上生成的计划的实际执行情况。</p>
+<p><br><br><br></p>
+<h2 id="局限性"><a href="#局限性" class="headerlink" title="局限性"></a>局限性</h2><p><a href="#jumpHere">〓 ReTURN 〓</a></p>
+<p>SayPlan受当前大型语言模型（LLM）固有局限性的制约，包括偏见和不准确性，影响其生成计划的有效性。具体来说，SayPlan受到底层LLM的基于图的推理能力的限制，这些模型在简单的基于距离和数量的推理以及节点否定方面表现不佳。未来的工作可以探讨针对这些特定任务对这些模型进行微调，或结合现有的更复杂的图推理工具以促进决策。其次，SayPlan的当前框架受到预先构建的3D场景图的需求限制，并假设在地图生成后对象保持静态，极大地限制了其适应动态真实环境的能力。未来的工作可以探讨如何将在线场景图SLAM系统集成到SayPlan框架中以解决这一问题。此外，将开放词汇表示引入场景图中可以产生一般场景表示，而不仅仅是文本节点描述。最后，当前系统的一个潜在局限性在于场景图模拟器及其捕捉环境中各种规划失败的能力。虽然在本文中展示的案例中效果良好，但对于涉及多样化前提和能力的更复杂任务，为每个实例提供相关反馈信息可能变得不可行，这是未来这一领域研究的重要方向。</p>
+<p><br><br><br></p>
+<h2 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h2><p><a href="#jumpHere">〓 ReTURN 〓</a></p>
+<p>SayPlan是一个面向机器人的自然语言驱动规划框架，集成了层次化3D场景图和LLM，以规划跨越多个楼层和房间的大规模环境。通过利用3D场景图的层次结构和LLM的语义推理能力，我们确保了方法的可扩展性，使代理能够从层次结构的最高级别探索场景图，从而显著减少捕捉更大环境所需的初始标记。一旦完成探索，LLM会生成移动机械手机器人的任务计划，场景图模拟器通过迭代重新规划确保计划的可行性和符合环境。该框架在生成正确、可执行的计划方面超越了现有技术，机器人可以遵循这些计划。最后，我们成功地将验证过的计划转化为在多个房间、资产和物体的大型办公室环境中运行的真实移动机械手代理。SayPlan代表了能够在家庭、医院和工作场所运行的通用服务机器人向前迈进了一步，为这一领域的未来研究奠定了基础。</p>
+</div><div class="article-licensing box"><div class="licensing-title"><p>SayPlan - Grounding Large Language Models using 3D Scene Graphs for Scalable Robot Task Planning</p><p><a href="https://nerozac.com/2024/06/04/sayplan/">https://nerozac.com/2024/06/04/sayplan/</a></p></div><div class="licensing-meta level is-mobile"><div class="level-left"><div class="level-item is-narrow"><div><h6>作者</h6><p>Jiawei Li</p></div></div><div class="level-item is-narrow"><div><h6>发布于</h6><p>2024-06-04</p></div></div><div class="level-item is-narrow"><div><h6>更新于</h6><p>2024-06-04</p></div></div><div class="level-item is-narrow"><div><h6>许可协议</h6><p><a class="icons" rel="noopener" target="_blank" title="Creative Commons" href="https://creativecommons.org/"><i class="icon fab fa-creative-commons"></i></a><a class="icons" rel="noopener" target="_blank" title="Attribution" href="https://creativecommons.org/licenses/by/4.0/"><i class="icon fab fa-creative-commons-by"></i></a><a class="icons" rel="noopener" target="_blank" title="Noncommercial" href="https://creativecommons.org/licenses/by-nc/4.0/"><i class="icon fab fa-creative-commons-nc"></i></a></p></div></div></div></div></div><div class="article-tags is-size-7 mb-4"><span class="mr-2">#</span><a class="link-muted mr-2" rel="tag" href="/tags/%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/">论文阅读</a><a class="link-muted mr-2" rel="tag" href="/tags/3DLLM/">3DLLM</a></div><div class="sharethis-inline-share-buttons"></div><script src="nerozac.com" defer></script></article></div><!--!--><nav class="post-navigation mt-4 level is-mobile"><div class="level-start"><a class="article-nav-prev level level-item link-muted" href="/2024/06/05/MinkowskiEngine%E5%AE%89%E8%A3%85%E4%B8%8E%E9%85%8D%E7%BD%AE/"><i class="level-item fas fa-chevron-left"></i><span class="level-item">MinkowskiEngine安装与配置</span></a></div><div class="level-end"><a class="article-nav-next level level-item link-muted" href="/2024/06/03/Conda-Pack-%E5%B7%A5%E5%85%B7/"><span class="level-item">Conda Pack</span><i class="level-item fas fa-chevron-right"></i></a></div></nav><!--!--></div><div class="column column-left is-4-tablet is-4-desktop is-4-widescreen  order-1"><div class="card widget" data-type="profile"><div class="card-content"><nav class="level"><div class="level-item has-text-centered flex-shrink-1"><div><figure class="image is-128x128 mx-auto mb-2"><img class="avatar" src="/img/jlijz2.jpg" alt="Jiawei Li"></figure><p class="title is-size-4 is-block" style="line-height:inherit;">Jiawei Li</p><p class="is-size-6 is-block">CSE PhD student at HKUST. Focusing on Large Language Model Agents and 3D databases.</p><p class="is-size-6 is-flex justify-content-center"><i class="fas fa-map-marker-alt mr-1"></i><span>Clear Water Bay, Kowloon, Hong Kong</span></p></div></div></nav><nav class="level is-mobile"><div class="level-item has-text-centered is-marginless"><div><p class="heading">文章</p><a href="/archives"><p class="title">18</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">分类</p><a href="/categories"><p class="title">18</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">标签</p><a href="/tags"><p class="title">25</p></a></div></div></nav><div class="level"><a class="level-item button is-primary is-rounded" href="https://github.com/adrianJW421" target="_blank" rel="noopener">关注我</a></div><div class="level is-mobile is-multiline"><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="Github" href="https://github.com/adrianJW421"><i class="fab fa-github"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="Facebook" href="/null"><i class="fab fa-facebook"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="Twitter" href="/null"><i class="fab fa-twitter"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="Dribbble" href="/null"><i class="fab fa-dribbble"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="RSS" href="/"><i class="fas fa-rss"></i></a></div></div></div><div class="card widget" id="toc" data-type="toc"><div class="card-content"><div class="menu"><h3 class="menu-label">目录</h3><ul class="menu-list"><li><a class="level is-mobile" href="#Abstract"><span class="level-left"><span class="level-item">1</span><span class="level-item">Abstract</span></span></a></li><li><a class="level is-mobile" href="#Introduction"><span class="level-left"><span class="level-item">2</span><span class="level-item">Introduction</span></span></a></li><li><a class="level is-mobile" href="#Related-Work"><span class="level-left"><span class="level-item">3</span><span class="level-item">Related Work</span></span></a></li><li><a class="level is-mobile" href="#SayPlan"><span class="level-left"><span class="level-item">4</span><span class="level-item">SayPlan</span></span></a><ul class="menu-list"><li><a class="level is-mobile" href="#问题表述"><span class="level-left"><span class="level-item">4.1</span><span class="level-item">问题表述</span></span></a></li><li><a class="level is-mobile" href="#预备知识"><span class="level-left"><span class="level-item">4.2</span><span class="level-item">预备知识</span></span></a><ul class="menu-list"><li><a class="level is-mobile" href="#场景表示：3D场景图"><span class="level-left"><span class="level-item">4.2.1</span><span class="level-item">场景表示：3D场景图</span></span></a></li><li><a class="level is-mobile" href="#场景图模拟器"><span class="level-left"><span class="level-item">4.2.2</span><span class="level-item">场景图模拟器</span></span></a></li></ul></li><li><a class="level is-mobile" href="#方法"><span class="level-left"><span class="level-item">4.3</span><span class="level-item">方法</span></span></a><ul class="menu-list"><li><a class="level is-mobile" href="#语义搜索"><span class="level-left"><span class="level-item">4.3.1</span><span class="level-item">语义搜索</span></span></a></li><li><a class="level is-mobile" href="#迭代重新规划"><span class="level-left"><span class="level-item">4.3.2</span><span class="level-item">迭代重新规划</span></span></a></li></ul></li></ul></li><li><a class="level is-mobile" href="#实验设置"><span class="level-left"><span class="level-item">5</span><span class="level-item">实验设置</span></span></a><ul class="menu-list"><li><a class="level is-mobile" href="#语义搜索-1"><span class="level-left"><span class="level-item">5.1</span><span class="level-item">语义搜索</span></span></a></li><li><a class="level is-mobile" href="#因果规划"><span class="level-left"><span class="level-item">5.2</span><span class="level-item">因果规划</span></span></a></li></ul></li><li><a class="level is-mobile" href="#结果"><span class="level-left"><span class="level-item">6</span><span class="level-item">结果</span></span></a><ul class="menu-list"><li><a class="level is-mobile" href="#语义搜索-2"><span class="level-left"><span class="level-item">6.1</span><span class="level-item">语义搜索</span></span></a></li><li><a class="level is-mobile" href="#扩展性分析"><span class="level-left"><span class="level-item">6.2</span><span class="level-item">扩展性分析</span></span></a></li><li><a class="level is-mobile" href="#因果规划-1"><span class="level-left"><span class="level-item">6.3</span><span class="level-item">因果规划</span></span></a></li></ul></li><li><a class="level is-mobile" href="#局限性"><span class="level-left"><span class="level-item">7</span><span class="level-item">局限性</span></span></a></li><li><a class="level is-mobile" href="#结论"><span class="level-left"><span class="level-item">8</span><span class="level-item">结论</span></span></a></li></ul></div></div><style>#toc .menu-list > li > a.is-active + .menu-list { display: block; }#toc .menu-list > li > a + .menu-list { display: none; }</style><script src="/js/toc.js" defer></script></div><div class="card widget" data-type="links"><div class="card-content"><div class="menu"><h3 class="menu-label">链接</h3><ul class="menu-list"><li><a class="level is-mobile" href="https://nerozac.com/" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">link1</span></span><span class="level-right"><span class="level-item tag">nerozac.com</span></span></a></li></ul></div></div></div><div class="card widget" data-type="categories"><div class="card-content"><div class="menu"><h3 class="menu-label">分类</h3><ul class="menu-list"><li><a class="level is-mobile" href="/categories/DSF/"><span class="level-start"><span class="level-item">DSF</span></span><span class="level-end"><span class="level-item tag">1</span></span></a><ul><li><a class="level is-mobile" href="/categories/DSF/%E6%9C%8D%E5%8A%A1%E5%99%A8%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE/"><span class="level-start"><span class="level-item">服务器环境配置</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li></ul></li><li><a class="level is-mobile" href="/categories/%E5%A5%BD%E6%96%87%E8%BD%AC%E8%BD%BD/"><span class="level-start"><span class="level-item">好文转载</span></span><span class="level-end"><span class="level-item tag">2</span></span></a><ul><li><a class="level is-mobile" href="/categories/%E5%A5%BD%E6%96%87%E8%BD%AC%E8%BD%BD/NLP/"><span class="level-start"><span class="level-item">NLP</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile" href="/categories/%E5%A5%BD%E6%96%87%E8%BD%AC%E8%BD%BD/%E5%A4%A7%E7%A5%9E%E8%AF%AD%E5%BD%95/"><span class="level-start"><span class="level-item">大神语录</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li></ul></li><li><a class="level is-mobile" href="/categories/%E6%8A%80%E6%9C%AF%E7%99%BE%E7%A7%91/"><span class="level-start"><span class="level-item">技术百科</span></span><span class="level-end"><span class="level-item tag">9</span></span></a><ul><li><a class="level is-mobile" href="/categories/%E6%8A%80%E6%9C%AF%E7%99%BE%E7%A7%91/MacOS/"><span class="level-start"><span class="level-item">MacOS</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile" href="/categories/%E6%8A%80%E6%9C%AF%E7%99%BE%E7%A7%91/Python/"><span class="level-start"><span class="level-item">Python</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile" href="/categories/%E6%8A%80%E6%9C%AF%E7%99%BE%E7%A7%91/computer-vision/"><span class="level-start"><span class="level-item">computer_vision</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile" href="/categories/%E6%8A%80%E6%9C%AF%E7%99%BE%E7%A7%91/gitlab/"><span class="level-start"><span class="level-item">gitlab</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile" href="/categories/%E6%8A%80%E6%9C%AF%E7%99%BE%E7%A7%91/%E4%B8%89%E7%BB%B4%E9%87%8D%E5%BB%BA/"><span class="level-start"><span class="level-item">三维重建</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile" href="/categories/%E6%8A%80%E6%9C%AF%E7%99%BE%E7%A7%91/%E7%B3%BB%E7%BB%9F%E7%8E%AF%E5%A2%83%E5%8F%8A%E7%BC%96%E8%AF%91/"><span class="level-start"><span class="level-item">系统环境及编译</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile" href="/categories/%E6%8A%80%E6%9C%AF%E7%99%BE%E7%A7%91/%E8%A7%86%E9%A2%91%E7%BC%96%E8%BE%91/"><span class="level-start"><span class="level-item">视频编辑</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li></ul></li><li><a class="level is-mobile" href="/categories/%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/"><span class="level-start"><span class="level-item">论文阅读</span></span><span class="level-end"><span class="level-item tag">6</span></span></a><ul><li><a class="level is-mobile" href="/categories/%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/3DLLM/"><span class="level-start"><span class="level-item">3DLLM</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile" href="/categories/%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/LLMAgent/"><span class="level-start"><span class="level-item">LLMAgent</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile" href="/categories/%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/PCDM/"><span class="level-start"><span class="level-item">PCDM</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile" href="/categories/%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/%E4%B8%89%E7%BB%B4%E9%87%8D%E5%BB%BA/"><span class="level-start"><span class="level-item">三维重建</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li></ul></li></ul></div></div></div><div class="card widget" data-type="recent-posts"><div class="card-content"><h3 class="menu-label">最新文章</h3><article class="media"><div class="media-content"><p class="date"><time dateTime="2024-06-11T08:08:49.678Z">2024-06-11</time></p><p class="title"><a href="/2024/06/11/NeRF%E5%8E%9F%E8%AE%BA%E6%96%87%E5%8F%8A%E6%95%99%E7%A8%8B/">NeRF原论文及教程</a></p><p class="categories"><a href="/categories/%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/">论文阅读</a> / <a href="/categories/%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/%E4%B8%89%E7%BB%B4%E9%87%8D%E5%BB%BA/">三维重建</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2024-06-11T08:05:29.112Z">2024-06-11</time></p><p class="title"><a href="/2024/06/11/Buffer-of-Thoughts/">Buffer of Thoughts - Thought-Augmented Reasoning with Large Language Models</a></p><p class="categories"><a href="/categories/%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/">论文阅读</a> / <a href="/categories/%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/LLMAgent/">LLMAgent</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2024-06-06T08:48:57.589Z">2024-06-06</time></p><p class="title"><a href="/2024/06/06/Instructions-for-PhD-Students/">大牛谏言 Instructions for PhD Students</a></p><p class="categories"><a href="/categories/%E5%A5%BD%E6%96%87%E8%BD%AC%E8%BD%BD/">好文转载</a> / <a href="/categories/%E5%A5%BD%E6%96%87%E8%BD%AC%E8%BD%BD/%E5%A4%A7%E7%A5%9E%E8%AF%AD%E5%BD%95/">大神语录</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2024-06-06T08:48:57.589Z">2024-06-06</time></p><p class="title"><a href="/2024/06/06/TinyCudaNN/">TinyCudaNN</a></p><p class="categories"><a href="/categories/%E6%8A%80%E6%9C%AF%E7%99%BE%E7%A7%91/">技术百科</a> / <a href="/categories/%E6%8A%80%E6%9C%AF%E7%99%BE%E7%A7%91/%E4%B8%89%E7%BB%B4%E9%87%8D%E5%BB%BA/">三维重建</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2024-06-06T08:48:57.588Z">2024-06-06</time></p><p class="title"><a href="/2024/06/06/3d-point-network-distillation-via-3d-fusion/">3D point network distillation from an open-vocabulary 2D image model via 3D fusion</a></p><p class="categories"><a href="/categories/%E6%8A%80%E6%9C%AF%E7%99%BE%E7%A7%91/">技术百科</a> / <a href="/categories/%E6%8A%80%E6%9C%AF%E7%99%BE%E7%A7%91/%E4%B8%89%E7%BB%B4%E9%87%8D%E5%BB%BA/">三维重建</a></p></div></article></div></div><div class="card widget" data-type="archives"><div class="card-content"><div class="menu"><h3 class="menu-label">归档</h3><ul class="menu-list"><li><a class="level is-mobile" href="/archives/2024/06/"><span class="level-start"><span class="level-item">六月 2024</span></span><span class="level-end"><span class="level-item tag">14</span></span></a></li><li><a class="level is-mobile" href="/archives/2024/05/"><span class="level-start"><span class="level-item">五月 2024</span></span><span class="level-end"><span class="level-item tag">4</span></span></a></li></ul></div></div></div><div class="card widget" data-type="tags"><div class="card-content"><div class="menu"><h3 class="menu-label">标签</h3><div class="field is-grouped is-grouped-multiline"><div class="control"><a class="tags has-addons" href="/tags/3DLLM/"><span class="tag">3DLLM</span><span class="tag">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/CUDA%E9%A9%B1%E5%8A%A8/"><span class="tag">CUDA驱动</span><span class="tag">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/DSF/"><span class="tag">DSF</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/LLMAgent/"><span class="tag">LLMAgent</span><span class="tag">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/MacOS/"><span class="tag">MacOS</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/NLP/"><span class="tag">NLP</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/PCDM/"><span class="tag">PCDM</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Python/"><span class="tag">Python</span><span class="tag">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Transformer/"><span class="tag">Transformer</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/computer-vision/"><span class="tag">computer_vision</span><span class="tag">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/conda-forge/"><span class="tag">conda-forge</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/docker/"><span class="tag">docker</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/gcc/"><span class="tag">gcc</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/gitlab/"><span class="tag">gitlab</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E4%B8%89%E7%BB%B4%E9%87%8D%E5%BB%BA/"><span class="tag">三维重建</span><span class="tag">3</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E5%8D%9A%E5%A3%AB%E7%94%9F%E6%B6%AF/"><span class="tag">博士生涯</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E5%A4%96%E6%8E%A5%E8%AE%BE%E5%A4%87/"><span class="tag">外接设备</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E5%A4%A7%E7%A5%9E%E8%AF%AD%E5%BD%95/"><span class="tag">大神语录</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E5%A5%BD%E6%96%87%E8%BD%AC%E8%BD%BD/"><span class="tag">好文转载</span><span class="tag">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E6%8A%80%E6%9C%AF%E7%99%BE%E7%A7%91/"><span class="tag">技术百科</span><span class="tag">7</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E6%9C%8D%E5%8A%A1%E5%99%A8/"><span class="tag">服务器</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E7%82%B9%E4%BA%91/"><span class="tag">点云</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E7%B3%BB%E7%BB%9F%E7%8E%AF%E5%A2%83%E5%8F%8A%E7%BC%96%E8%AF%91/"><span class="tag">系统环境及编译</span><span class="tag">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E8%A7%86%E9%A2%91%E7%BC%96%E8%BE%91/"><span class="tag">视频编辑</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/"><span class="tag">论文阅读</span><span class="tag">6</span></a></div></div></div></div></div></div><!--!--></div></div></section><footer class="footer"><div class="container"><div class="level"><div class="level-start"><a class="footer-logo is-block mb-2" href="/">Zac&#039;s Blog</a><p class="is-size-7"><span>&copy; 2024 Jiawei Li</span>  Powered by <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a> &amp; <a href="https://github.com/ppoffice/hexo-theme-icarus" target="_blank" rel="noopener">Icarus</a></p></div><div class="level-end"><div class="field has-addons"><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Attribution 4.0 International" href="https://creativecommons.org/licenses/by/4.0/"><i class="fab fa-creative-commons-by"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Download on GitHub" href="https://github.com/adrianJW421"><i class="fab fa-github"></i></a></p></div></div></div></div></footer><script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/moment@2.22.2/min/moment-with-locales.min.js"></script><script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.4/dist/clipboard.min.js" defer></script><script>moment.locale("zh-cn");</script><script>var IcarusThemeSettings = {
+            article: {
+                highlight: {
+                    clipboard: true,
+                    fold: 'unfolded'
+                }
+            }
+        };</script><script src="/js/column.js"></script><script src="/js/animation.js"></script><a id="back-to-top" title="回到顶端" href="javascript:;"><i class="fas fa-chevron-up"></i></a><script src="/js/back_to_top.js" defer></script><!--!--><!--!--><!--!--><script src="https://cdn.jsdelivr.net/npm/cookieconsent@3.1.1/build/cookieconsent.min.js" defer></script><script>window.addEventListener("load", () => {
+      window.cookieconsent.initialise({
+        type: "info",
+        theme: "edgeless",
+        static: false,
+        position: "bottom-left",
+        content: {
+          message: "此网站使用Cookie来改善您的体验。",
+          dismiss: "知道了！",
+          allow: "允许使用Cookie",
+          deny: "拒绝",
+          link: "了解更多",
+          policy: "Cookie政策",
+          href: "https://www.cookiesandyou.com/",
+        },
+        palette: {
+          popup: {
+            background: "#edeff5",
+            text: "#838391"
+          },
+          button: {
+            background: "#4b81e8"
+          },
+        },
+      });
+    });</script><script src="https://cdn.jsdelivr.net/npm/lightgallery@1.10.0/dist/js/lightgallery.min.js" defer></script><script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.8.1/dist/js/jquery.justifiedGallery.min.js" defer></script><script>window.addEventListener("load", () => {
+            if (typeof $.fn.lightGallery === 'function') {
+                $('.article').lightGallery({ selector: '.gallery-item' });
+            }
+            if (typeof $.fn.justifiedGallery === 'function') {
+                if ($('.justified-gallery > p > .gallery-item').length) {
+                    $('.justified-gallery > p > .gallery-item').unwrap();
+                }
+                $('.justified-gallery').justifiedGallery();
+            }
+        });</script><!--!--><!--!--><script type="text/javascript" id="MathJax-script" async>MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']]
+      },
+      svg: {
+        fontCache: 'global'
+      },
+      chtml: {
+        matchFontHeight: false
+      }
+    };</script><script src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js"></script><!--!--><!--!--><!--!--><script src="/js/main.js" defer></script><div class="searchbox"><div class="searchbox-container"><div class="searchbox-header"><div class="searchbox-input-container"><input class="searchbox-input" type="text" placeholder="想要查找什么..."></div><a class="searchbox-close" href="javascript:;">×</a></div><div class="searchbox-body"></div></div></div><script src="/js/insight.js" defer></script><script>document.addEventListener('DOMContentLoaded', function () {
+            loadInsight({"contentUrl":"/content.json"}, {"hint":"想要查找什么...","untitled":"(无标题)","posts":"文章","pages":"页面","categories":"分类","tags":"标签"});
+        });</script></body></html>
