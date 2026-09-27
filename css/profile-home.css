@@ -1,0 +1,123 @@
+.home-profile .card-content,
+.home-recent .card-content {
+  min-width: 0;
+}
+
+.home-profile .home-label,
+.home-recent .home-label {
+  color: #5f6b7a;
+  font-size: .75rem;
+  font-weight: 600;
+  letter-spacing: .08em;
+  margin-bottom: .75rem;
+}
+
+.home-profile .title {
+  margin-bottom: 1.4rem;
+}
+
+.home-profile-content,
+.home-profile-content > *,
+.home-recent-copy {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.home-profile-content img,
+.home-profile-content iframe,
+.home-profile-content video {
+  max-width: 100%;
+  height: auto;
+}
+
+.home-profile-content pre {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.home-recent {
+  margin-top: 1.5rem;
+}
+
+.home-recent-header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: .5rem 1.25rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid #e8ecf1;
+}
+
+.home-recent-header .title {
+  margin-bottom: 0;
+}
+
+.home-all-posts,
+.home-older-posts {
+  font-weight: 600;
+}
+
+.home-recent-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.home-recent-item {
+  display: grid;
+  grid-template-columns: 7.5rem minmax(0, 1fr);
+  gap: 1.25rem;
+  padding: 1.35rem 0;
+  border-bottom: 1px solid #e8ecf1;
+}
+
+.home-recent-item time {
+  color: #617083;
+  font-size: .875rem;
+  white-space: nowrap;
+}
+
+.home-recent-item .title {
+  margin-bottom: .5rem;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.home-recent-item .title a {
+  color: #27344a;
+}
+
+.home-recent-item .title a:hover,
+.home-recent-item .title a:focus-visible {
+  color: #3273dc;
+}
+
+.home-recent-copy p {
+  color: #536172;
+  line-height: 1.65;
+  margin: 0;
+}
+
+.home-older-posts {
+  display: inline-block;
+  margin-top: 1.25rem;
+}
+
+.home-profile a:focus-visible,
+.home-recent a:focus-visible {
+  outline: 2px solid #3273dc;
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+@media (max-width: 600px) {
+  .home-recent-item {
+    display: block;
+  }
+
+  .home-recent-item time {
+    display: block;
+    margin-bottom: .4rem;
+  }
+}
